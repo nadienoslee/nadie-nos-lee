@@ -9,6 +9,8 @@ export default function EventoDetalle() {
   const [ev, setEv]           = useState(null)
   const [cargando, setCargando] = useState(true)
 
+  usePageTitle(`NADIE NOS LEE | ${ev?.titulo || 'EVENTO'}`)
+
   useEffect(() => {
     const cargar = async () => {
       const { data } = await supabase
@@ -40,12 +42,9 @@ export default function EventoDetalle() {
   const color     = ev.color || '#9B2D8E'
   const gradiente = ev.gradiente || `linear-gradient(135deg, ${color}22, ${color}08)`
 
-  usePageTitle(`NADIE NOS LEE | ${ev.titulo || 'EVENTO'}`)
-
   const fechaFormateada = ev.fecha
     ? new Date(ev.fecha).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })
     : '—'
-
   return (
     <main>
       {/* HERO */}

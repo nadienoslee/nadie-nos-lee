@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import iconRosa from '../assets/ICONROSA.png'
 import iconRojo from '../assets/ICONROJO.png'
+import usePageTitle from '../hooks/usePageTitle'
 
 const textos404 = [
   'Esta página no existe. Igual que todos los libros que aún no hemos escrito. Pero tú seguiste buscando, y eso ya dice algo.',

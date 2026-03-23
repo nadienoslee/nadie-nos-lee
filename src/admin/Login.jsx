@@ -33,13 +33,12 @@ function Switch({ activo, onChange }) {
 
 export default function Login() {
   usePageTitle('NADIE NOS LEE | LOGIN')
-  const [email, setEmail]         = useState('')
+  const [username, setUsername]   = useState('')
   const [password, setPassword]   = useState('')
   const [error, setError]         = useState('')
   const [cargando, setCargando]   = useState(false)
   const [recordar, setRecordar]   = useState(() => localStorage.getItem('nnl_recordar') !== 'false')
   const navigate = useNavigate()
-
   // Si ya hay sesión activa, ir directo al dashboard
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -64,14 +63,38 @@ export default function Login() {
     setCargando(true)
     setError('')
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const usernameLimpio = username.trim().toLowerCase()
 
-    if (error) {
-      setError('Credenciales incorrectas. Verifica tu correo y contraseña.')
+    const { data: perfil, error: perfilError } = await supabase
+      .from('perfiles')
+      .select('email, username, activo')
+      .ilike('username', usernameLimpio)
+      .single()
+
+    if (perfilError || !perfil?.email) {
+            setError('Credenciales incorrectas. Verifica tu usuario y contraseña.')
       setCargando(false)
-    } else {
-      navigate('/admin/dashboard')
+      return
     }
+
+    if (perfil.activo === false) {
+      setError('Tu usuario está desactivado.')
+      setCargando(false)
+      return
+    }
+
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email: perfil.email,
+      password,
+    })
+
+    if (authError) {
+            setError('Credenciales incorrectas. Verifica tu usuario y contraseña.')
+      setCargando(false)
+      return
+    }
+
+    navigate('/admin/dashboard')
   }
 
   return (
@@ -112,8 +135,8 @@ export default function Login() {
         {/* Formulario */}
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div>
-            <label style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(245,240,232,0.45)', display: 'block', marginBottom: 8 }}>Correo electrónico</label>
-            <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@correo.com"
+            <label style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(245,240,232,0.45)', display: 'block', marginBottom: 8 }}>Usuario</label>
+            <input type="text" required autoComplete="username" value={username} onChange={e => setUsername(e.target.value)} placeholder="nadienoslee"
               style={{ width: '100%', padding: '14px 16px', background: 'rgba(245,240,232,0.04)', border: '1px solid rgba(245,240,232,0.1)', color: '#f5f0e8', outline: 'none', fontFamily: "'Cormorant Garamond', serif", fontSize: 18, transition: 'border-color 0.2s', boxSizing: 'border-box' }}
               onFocus={e => e.target.style.borderColor = '#9B2D8E'}
               onBlur={e => e.target.style.borderColor = 'rgba(245,240,232,0.1)'}

@@ -1,6 +1,11 @@
 import AnimatedSection from '../components/AnimatedSection'
+import iconRosa from '../assets/ICONROSA.png'
+import iconRojo from '../assets/ICONROJO.png'
+import usePageTitle from '../hooks/usePageTitle'
 
 export default function Manifiesto() {
+  usePageTitle('NADIE NOS LEE | MANIFIESTO')
+
   return (
     <main style={{ paddingTop: 84 }}>
 
@@ -114,16 +119,16 @@ export default function Manifiesto() {
                 "Nadie nos lee,
 y aun así la poesía persiste."
               </p>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 16, alignItems: 'center' }}>
-                <span style={{ color: '#9B2D8E', fontSize: 22 }}>✕</span>
-                <p style={{
-                  fontFamily: "'Courier Prime', monospace",
-                  fontSize: 12, letterSpacing: 3,
-                  textTransform: 'uppercase',
-                  color: 'rgba(26,18,8,0.4)',
-                }}>Nadie Nos Lee — Colectivo de Escritura</p>
-                <span style={{ color: '#8B1A1A', fontSize: 22 }}>✕</span>
-              </div>
+<div style={{ display: 'flex', justifyContent: 'center', gap: 20, alignItems: 'center' }}>
+  <img src={iconRosa} alt="" style={{ width: 36, height: 'auto', objectFit: 'contain', flexShrink: 0 }} />
+  <p style={{
+    fontFamily: "'Courier Prime', monospace",
+    fontSize: 12, letterSpacing: 3,
+    textTransform: 'uppercase',
+    color: 'rgba(26,18,8,0.4)',
+  }}>Nadie Nos Lee — Colectivo de Escritura</p>
+  <img src={iconRojo} alt="" style={{ width: 36, height: 'auto', objectFit: 'contain', flexShrink: 0 }} />
+</div>  
             </div>
           </AnimatedSection>
         </div>

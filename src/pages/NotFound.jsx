@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import iconRosa from '../assets/ICONROSA.png'
+import iconRojo from '../assets/ICONROJO.png'
 
 const textos404 = [
   'Esta página no existe. Igual que todos los libros que aún no hemos escrito. Pero tú seguiste buscando, y eso ya dice algo.',
@@ -9,6 +11,7 @@ const textos404 = [
 ]
 
 export default function NotFound() {
+  usePageTitle('NADIE NOS LEE | 404')
   const [texto, setTexto] = useState('')
 
   useEffect(() => {
@@ -33,9 +36,27 @@ export default function NotFound() {
       }}>404</div>
 
       <div style={{ maxWidth: 620, marginTop: -32 }}>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 36 }}>
-          <span style={{ color: '#9B2D8E', fontSize: 24 }}>✕</span>
-          <span style={{ color: '#8B1A1A', fontSize: 24 }}>✕</span>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 18, marginBottom: 36, alignItems: 'center' }}>
+          <img
+            src={iconRosa}
+            alt="icono rosa"
+            style={{
+              width: 26,
+              height: 'auto',
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.15))',
+            }}
+          />
+          <img
+            src={iconRojo}
+            alt="icono rojo"
+            style={{
+              width: 26,
+              height: 'auto',
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.15))',
+            }}
+          />
         </div>
 
         <p style={{

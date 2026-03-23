@@ -51,30 +51,28 @@ export default function Footer() {
                 onMouseOut={e => e.target.style.color = 'rgba(245,237,224,0.55)'}
               >{l}</Link>
             ))}
-            {/* EASTER EGG — botón oculto */}
-            <Link to="/pagina-que-no-existe-404"
-              title="..."
-              style={{
-                display: 'inline-block',
-                marginTop: 8,
-                width: 18, height: 18,
-                background: 'rgba(245,237,224,0.04)',
-                border: '1px solid rgba(245,237,224,0.07)',
-                borderRadius: 2,
-                cursor: 'default',
-                transition: 'background 0.3s, border-color 0.3s',
-              }}
-              onMouseOver={e => {
-                e.target.style.background = 'rgba(155,45,142,0.25)'
-                e.target.style.borderColor = 'rgba(155,45,142,0.5)'
-                e.target.style.cursor = 'pointer'
-              }}
-              onMouseOut={e => {
-                e.target.style.background = 'rgba(245,237,224,0.04)'
-                e.target.style.borderColor = 'rgba(245,237,224,0.07)'
-                e.target.style.cursor = 'default'
-              }}
-            />
+{/* EASTER EGG — invisible bajo el texto */}
+<Link to="/pagina-que-no-existe-404"
+  style={{
+    display: 'block',
+    marginTop: 2,
+    fontFamily: "'Courier Prime', monospace",
+    fontSize: 13, letterSpacing: 1,
+    color: 'rgba(245,237,224,0.0)',
+    cursor: 'default',
+    userSelect: 'none',
+    transition: 'color 0.4s',
+    lineHeight: 1.4,
+  }}
+  onMouseOver={e => {
+    e.target.style.color = 'rgba(155,45,142,0.18)'
+    e.target.style.cursor = 'pointer'
+  }}
+  onMouseOut={e => {
+    e.target.style.color = 'rgba(245,237,224,0.0)'
+    e.target.style.cursor = 'default'
+  }}
+>Me Encontraste</Link>
           </div>
 
           {/* EDITORIAL */}

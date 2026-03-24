@@ -7,7 +7,7 @@ import { PieChart } from '@mui/x-charts/PieChart'
 import Notificacion from '../components/Notificacion'
 import Usuarios from './Usuarios'
 import SeccionCRUD from './SeccionCRUD'
-import logoDesktop from '../assets/LOGOCENTRADONG.png'
+import logoDesktop from '../assets/NADIENOSLEEV2NG.png'
 import logoMobile from '../assets/ICONSPAREJA.png'
 import usePageTitle from '../hooks/usePageTitle'
 const C = {
@@ -109,6 +109,97 @@ function Avatar({ email, fotoUrl, size = 36, fontSize = 16 }) {
       }}>
         {email?.charAt(0).toUpperCase()}
       </span>
+    </div>
+  )
+}
+
+function getDisplayName(n) {
+  return n?.nombre || n?.username || n?.email?.split('@')[0] || 'Usuario'
+}
+
+function formatFechaHora(raw) {
+  if (!raw) return { fecha: '—', hora: '—' }
+
+  const d = new Date(raw)
+  const hoy = new Date()
+  const esHoy = d.toDateString() === hoy.toDateString()
+
+  return {
+    fecha: esHoy
+      ? 'Hoy'
+      : d.toLocaleDateString('es-MX', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        }),
+    hora: d.toLocaleTimeString('es-MX', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
+  }
+}
+
+function getActionMeta(tipo) {
+  const map = {
+    edicion: {
+      color: C.blue,
+      shadow: '0 0 18px rgba(58,171,220,0.45)',
+      label: 'Edición',
+      icon: <Icon.Edit />,
+    },
+    eliminar: {
+      color: C.red,
+      shadow: '0 0 18px rgba(139,26,26,0.35)',
+      label: 'Eliminación',
+      icon: <Icon.Trash />,
+    },
+    nuevo: {
+      color: C.green,
+      shadow: '0 0 18px rgba(34,161,106,0.35)',
+      label: 'Creación',
+      icon: <Icon.Plus />,
+    },
+    inscripcion: {
+      color: C.purple,
+      shadow: '0 0 18px rgba(155,45,142,0.35)',
+      label: 'Inscripción',
+      icon: <Icon.Check />,
+    },
+    evento: {
+      color: C.gold,
+      shadow: '0 0 18px rgba(184,148,58,0.35)',
+      label: 'Evento',
+      icon: <Icon.Activity />,
+    },
+  }
+
+  return map[tipo] || {
+    color: C.ink,
+    shadow: '0 0 18px rgba(26,18,8,0.18)',
+    label: 'Actividad',
+    icon: <Icon.Activity />,
+  }
+}
+
+function ActionGlyph({ tipo, size = 18 }) {
+  const meta = getActionMeta(tipo)
+
+  return (
+    <div
+      style={{
+        color: meta.color,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        filter: `drop-shadow(${meta.shadow})`,
+        width: size,
+        height: size,
+        flexShrink: 0,
+      }}
+    >
+      <div style={{ transform: `scale(${size / 16})`, transformOrigin: 'center' }}>
+        {meta.icon}
+      </div>
     </div>
   )
 }
@@ -419,7 +510,8 @@ function EscrituraSeccion({ escriturasList, usuario, cargarDatos, registrarAccio
 export default function Dashboard() {
   usePageTitle('NADIE NOS LEE | DASHBOARD')
   const [seccionActiva, setSeccionActiva]   = useState('inicio')
-  const [sidebarAbierto, setSidebarAbierto] = useState(true)
+  const [sidebarAbierto, setSidebarAbierto] = useState(window.innerWidth > 900)
+  const [isMobile, setIsMobile]             = useState(window.innerWidth <= 900)
   const [usuario, setUsuario]               = useState(null)
   const [fotoUrl, setFotoUrl]               = useState(null)
   const [subiendoFoto, setSubiendoFoto]     = useState(false)
@@ -448,6 +540,19 @@ export default function Dashboard() {
       setUsuario(user)
       if (user) cargarFotoPerfil(user)
     })
+  }, [])
+
+  useEffect(() => {
+    const onResize = () => {
+      const mobile = window.innerWidth <= 900
+      setIsMobile(mobile)
+      if (mobile) {
+        setSidebarAbierto(false)
+      }
+    }
+
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
   }, [])
 
   const cargarFotoPerfil = async (user) => {
@@ -479,6 +584,13 @@ export default function Dashboard() {
       const url = urlData.publicUrl + '?t=' + Date.now()
       await supabase.from('perfiles').update({ foto_url: url }).eq('user_id', usuario.id)
       setFotoUrl(url)
+      setNotificaciones(prev =>
+        prev.map(n =>
+          (n.email || '').toLowerCase() === (usuario?.email || '').toLowerCase()
+            ? { ...n, fotoUrl: url }
+            : n
+        )
+      )
       setAlertaGeneral({ tipo: 'exito', titulo: 'Foto actualizada', mensaje: 'Tu foto de perfil se actualizó correctamente.', botonTexto: 'Aceptar', autoclose: 3000 })
     } else {
       setAlertaGeneral({ tipo: 'error', titulo: 'Error al subir', mensaje: 'No se pudo actualizar la foto. Intenta de nuevo.', botonTexto: 'Entendido' })
@@ -535,41 +647,80 @@ export default function Dashboard() {
       supabase.removeChannel(ch3); supabase.removeChannel(ch4)
       supabase.removeChannel(ch5)
     }
-  }, [])
+  }, [usuario?.email, fotoUrl])
 
   const agregarNotif = (tipo, texto) => {
+    const ahora = new Date()
+
     setNotificaciones(prev => [{
-      id: Date.now(), tipo, texto, leida: false,
-      tiempo: new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
+      id: Date.now(),
+      tipo,
+      texto,
+      leida: false,
+      nombre: usuario?.email?.split('@')[0] || 'Usuario',
+      email: usuario?.email || '',
+      fotoUrl: fotoUrl || null,
+      fecha: 'Hoy',
+      hora: ahora.toLocaleTimeString('es-MX', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
     }, ...prev.slice(0, 49)])
   }
 
 const cargarNotificaciones = async () => {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('actividad_log')
-    .select('*')
+    .select(`
+      id,
+      usuario_email,
+      usuario_id,
+      perfil_id,
+      accion,
+      seccion,
+      descripcion,
+      afecta_a,
+      created_at,
+      perfiles:perfil_id (
+        user_id,
+        nombre,
+        username,
+        email,
+        foto_url
+      )
+    `)
     .order('created_at', { ascending: false })
     .limit(30)
+
+  if (error) return
+
   if (data) {
-    setNotificaciones(data.map(n => {
-      const fecha = new Date(n.created_at)
-      const hoy   = new Date()
-      const esHoy = fecha.toDateString() === hoy.toDateString()
-      return {
-        id:        n.id,
-        tipo:      n.accion,
-        texto:     n.descripcion,
-        seccion:   n.seccion,
-        afecta_a:  n.afecta_a,
-        leida:     false,
-        email:     n.usuario_email,
-        nombre:    n.usuario_email?.split('@')[0] || 'Admin',
-        fotoUrl:   null,
-        fecha:     esHoy
-          ? `Hoy · ${fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`
-          : fecha.toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
-      }
-    }))
+    setNotificaciones(
+      data.map((n) => {
+        const perfil = Array.isArray(n.perfiles) ? n.perfiles[0] : n.perfiles
+        const fh = formatFechaHora(n.created_at)
+        const esUsuarioActual = (n.usuario_email || '').toLowerCase() === (usuario?.email || '').toLowerCase()
+
+        return {
+          id: n.id,
+          tipo: n.accion,
+          texto: n.descripcion,
+          seccion: n.seccion,
+          afecta_a: n.afecta_a,
+          leida: false,
+          email: perfil?.email || n.usuario_email,
+          nombre: getDisplayName({
+            nombre: perfil?.nombre,
+            username: perfil?.username,
+            email: perfil?.email || n.usuario_email,
+          }),
+          fotoUrl: perfil?.foto_url || (esUsuarioActual ? fotoUrl : null),
+          fecha: fh.fecha,
+          hora: fh.hora,
+          created_at: n.created_at,
+        }
+      })
+    )
   }
 }
 
@@ -622,22 +773,27 @@ const cargarNotificaciones = async () => {
   const marcarTodasLeidas = () => setNotificaciones(prev => prev.map(n => ({ ...n, leida: true })))
 
 const registrarAccion = async (accion, seccion, descripcion, afecta_a = null) => {
+  const { data: perfilActual } = await supabase
+    .from('perfiles')
+    .select('user_id, nombre, username, email, foto_url')
+    .eq('user_id', usuario?.id)
+    .single()
+
   await supabase.from('actividad_log').insert({
     usuario_email: usuario?.email,
     usuario_id: usuario?.id,
-    accion, seccion, descripcion,
+    perfil_id: perfilActual?.user_id || usuario?.id,
+    accion,
+    seccion,
+    descripcion,
     afecta_a,
   })
+
   agregarNotif(accion, descripcion)
 }
 
-  const colorNotif = t => ({ edicion: C.blue, nuevo: C.green, inscripcion: C.purple, eliminar: C.red, evento: C.gold }[t] || C.ink)
-  const IconNotif = ({ tipo }) => {
-    if (tipo === 'inscripcion') return <Icon.Check />
-    if (tipo === 'eliminar') return <Icon.Trash />
-    if (tipo === 'nuevo') return <Icon.Plus />
-    return <Icon.Edit />
-  }
+  const colorNotif = (t) => getActionMeta(t).color
+  const IconNotif = ({ tipo }) => <ActionGlyph tipo={tipo} />
 
   const statsCards = [
     { label: 'Visitas',        valor: stats.visitas,       sub: 'páginas vistas', color: C.purple },
@@ -796,17 +952,63 @@ const registrarAccion = async (accion, seccion, descripcion, afecta_a = null) =>
           </div>
           <div style={{ background: '#fff', border: '1px solid rgba(26,18,8,0.07)', borderRadius: 10, padding: '20px' }}>
             <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: C.blue, marginBottom: 16, fontWeight: '700' }}>Actividad reciente</p>
+
             {notificaciones.length === 0 ? (
               <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: 'rgba(26,18,8,0.35)', fontStyle: 'italic' }}>Sin actividad aún</p>
-            ) : notificaciones.slice(0, 6).map((n, i) => (
-              <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '13px 0', borderBottom: i < 5 ? '1px solid rgba(26,18,8,0.05)' : 'none' }}>
-                <div style={{ width: 30, height: 30, borderRadius: '50%', background: colorNotif(n.tipo) + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', color: colorNotif(n.tipo), flexShrink: 0, marginTop: 2 }}><IconNotif tipo={n.tipo} /></div>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 19, color: C.ink, marginBottom: 3, lineHeight: 1.4, fontWeight: '500' }}>{n.texto}</p>
-                  <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, color: 'rgba(26,18,8,0.45)', letterSpacing: 1, fontWeight: '600' }}>{n.tiempo}</p>
+            ) : notificaciones.slice(0, 6).map((n, i) => {
+              const meta = getActionMeta(n.tipo)
+
+              return (
+                <div
+                  key={n.id || i}
+                  style={{
+                    display: 'flex',
+                    gap: 14,
+                    alignItems: 'flex-start',
+                    padding: '16px 0',
+                    borderBottom: i < 5 ? '1px solid rgba(26,18,8,0.05)' : 'none',
+                  }}
+                >
+                  <Avatar email={n.email} fotoUrl={n.fotoUrl} size={42} fontSize={18} />
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 5 }}>
+                      <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 21, color: C.ink, fontWeight: 700, lineHeight: 1.1 }}>
+                        {n.nombre}
+                      </p>
+
+                      <ActionGlyph tipo={n.tipo} size={16} />
+
+                      <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: meta.color, fontWeight: '700', textShadow: meta.shadow }}>
+                        {meta.label}
+                      </span>
+                    </div>
+
+                    <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: 'rgba(26,18,8,0.72)', marginBottom: 8, lineHeight: 1.45 }}>
+                      {n.texto}
+                    </p>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
+                      {n.seccion && (
+                        <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1.1, textTransform: 'uppercase', color: meta.color, background: `${meta.color}10`, padding: '3px 8px', borderRadius: 999, fontWeight: '700' }}>
+                          {n.seccion}
+                        </span>
+                      )}
+
+                      {n.afecta_a && (
+                        <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1.1, color: C.red, background: 'rgba(139,26,26,0.08)', padding: '3px 8px', borderRadius: 999, fontWeight: '700' }}>
+                          Afectó a: {n.afecta_a}
+                        </span>
+                      )}
+                    </div>
+
+                    <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, color: 'rgba(26,18,8,0.38)', letterSpacing: 1, fontWeight: '700' }}>
+                      {n.fecha} · {n.hora}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )
@@ -882,7 +1084,7 @@ default:
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#f5f0e8' }}>
+    <div style={{ display: 'flex', height: '100vh', background: '#f5f0e8', overflow: 'hidden' }}>
 
       {alertaGeneral && <Notificacion {...alertaGeneral} onCerrar={() => setAlertaGeneral(null)} />}
 
@@ -928,7 +1130,21 @@ default:
       )}
 
       {/* ── SIDEBAR ── */}
-      <aside style={{ width: sidebarAbierto ? 248 : 68, background: '#fff', borderRight: '1px solid rgba(26,18,8,0.07)', display: 'flex', flexDirection: 'column', transition: 'width 0.3s ease', overflow: 'hidden', flexShrink: 0, boxShadow: '2px 0 10px rgba(26,18,8,0.04)' }}>
+            <aside style={{
+        width: sidebarAbierto ? 248 : 68,
+        height: '100vh',
+        background: '#fff',
+        borderRight: '1px solid rgba(26,18,8,0.07)',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'width 0.3s ease',
+        overflow: 'hidden',
+        flexShrink: 0,
+        boxShadow: '2px 0 10px rgba(26,18,8,0.04)',
+        position: 'sticky',
+        top: 0,
+        alignSelf: 'flex-start',
+      }}>
 <LogoHeader
   sidebarAbierto={sidebarAbierto}
   setSidebarAbierto={setSidebarAbierto}
@@ -936,7 +1152,7 @@ default:
   logoMobile={logoMobile}
   purple={C.purple}
 />
-        <nav style={{ flex: 1, padding: '10px 6px', overflowY: 'auto' }}>
+                <nav style={{ flex: 1, padding: '10px 6px', overflowY: 'auto', minHeight: 0 }}>
           {grupos.map(grupo => {
             const secGrupo = secciones.filter(s => s.grupo === grupo.id)
             return (
@@ -985,21 +1201,45 @@ default:
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
 
         {/* Topbar */}
-        <header style={{ height: 66, background: '#fff', borderBottom: '1px solid rgba(26,18,8,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 28px', flexShrink: 0, boxShadow: '0 1px 8px rgba(26,18,8,0.04)' }}>
+             <header style={{
+          height: 66,
+          background: '#fff',
+          borderBottom: '1px solid rgba(26,18,8,0.07)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: isMobile ? '0 14px' : '0 28px',
+          flexShrink: 0,
+          boxShadow: '0 1px 8px rgba(26,18,8,0.04)',
+          gap: 12,
+        }}>
           <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(26,18,8,0.45)', fontWeight: '700' }}>
             {secciones.find(s => s.id === seccionActiva)?.label}
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             {/* Campana */}
-            <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', flexShrink: 0 }}>
               <button onClick={() => setPanelNotif(!panelNotif)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: panelNotif ? C.purple : 'rgba(26,18,8,0.45)', padding: '6px', transition: 'color 0.2s', position: 'relative', display: 'flex', alignItems: 'center' }}>
                 <Icon.Bell />
                 {noLeidas > 0 && <span style={{ position: 'absolute', top: 2, right: 0, width: 17, height: 17, borderRadius: '50%', background: '#ef4444', color: '#fff', fontFamily: "'Courier Prime', monospace", fontSize: 9, fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>{noLeidas > 9 ? '9+' : noLeidas}</span>}
               </button>
 
 {panelNotif && (
-  <div style={{ position: 'absolute', top: '100%', right: 0, width: 420, background: '#fff', border: '1px solid rgba(26,18,8,0.1)', boxShadow: '0 16px 48px rgba(26,18,8,0.1)', zIndex: 150, borderRadius: 10, marginTop: 8, overflow: 'hidden' }}>
+   <div style={{
+    position: 'absolute',
+    top: '100%',
+    right: isMobile ? -8 : 0,
+    width: isMobile ? 'calc(100vw - 24px)' : 420,
+    maxWidth: isMobile ? 'calc(100vw - 24px)' : 420,
+    background: '#fff',
+    border: '1px solid rgba(26,18,8,0.1)',
+    boxShadow: '0 16px 48px rgba(26,18,8,0.1)',
+    zIndex: 150,
+    borderRadius: 10,
+    marginTop: 8,
+    overflow: 'hidden',
+  }}>
 
     {/* Header */}
     <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(26,18,8,0.07)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1010,86 +1250,114 @@ default:
     </div>
 
     {/* Lista */}
-    <div style={{ maxHeight: 420, overflowY: 'auto' }}>
+       <div style={{ maxHeight: isMobile ? '70vh' : 420, overflowY: 'auto' }}>
       {notificaciones.length === 0 ? (
         <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: 'rgba(26,18,8,0.35)', textAlign: 'center', padding: '28px', fontStyle: 'italic' }}>Sin actividad aún</p>
-      ) : notificaciones.map((n, i) => (
-        <div key={n.id} style={{ padding: '14px 18px', borderBottom: '1px solid rgba(26,18,8,0.04)', background: n.leida ? 'transparent' : 'rgba(155,45,142,0.03)', display: 'flex', gap: 12, alignItems: 'flex-start', transition: 'background 0.15s' }}
-          onMouseOver={e => e.currentTarget.style.background = 'rgba(26,18,8,0.02)'}
-          onMouseOut={e => e.currentTarget.style.background = n.leida ? 'transparent' : 'rgba(155,45,142,0.03)'}
-        >
-          {/* Avatar del usuario */}
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            {n.fotoUrl ? (
-              <img src={n.fotoUrl} alt={n.nombre} style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: `2px solid ${colorNotif(n.tipo)}33` }} />
-            ) : (
-              <div style={{ width: 36, height: 36, borderRadius: '50%', background: colorNotif(n.tipo) + '18', border: `2px solid ${colorNotif(n.tipo)}33`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, color: colorNotif(n.tipo) }}>
-                  {n.nombre?.charAt(0).toUpperCase() || 'A'}
-                </span>
+      ) : notificaciones.map((n) => {
+        const meta = getActionMeta(n.tipo)
+
+        return (
+          <div
+            key={n.id}
+            style={{
+              padding: '16px 18px',
+              borderBottom: '1px solid rgba(26,18,8,0.05)',
+              background: n.leida ? '#fff' : `${meta.color}08`,
+              display: 'flex',
+              gap: 14,
+              alignItems: 'flex-start',
+              transition: 'background 0.15s, transform 0.15s',
+            }}
+            onMouseOver={e => {
+              e.currentTarget.style.background = `${meta.color}10`
+              e.currentTarget.style.transform = 'translateY(-1px)'
+            }}
+            onMouseOut={e => {
+              e.currentTarget.style.background = n.leida ? '#fff' : `${meta.color}08`
+              e.currentTarget.style.transform = 'translateY(0)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flex: 1, minWidth: 0 }}>
+              <Avatar email={n.email} fotoUrl={n.fotoUrl} size={42} fontSize={18} />
+
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 4 }}>
+                  <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: C.ink, fontWeight: 700, lineHeight: 1.1 }}>
+                    {n.nombre}
+                  </p>
+
+                  <ActionGlyph tipo={n.tipo} size={16} />
+
+                  <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', color: meta.color, fontWeight: '700', textShadow: meta.shadow }}>
+                    {meta.label}
+                  </span>
+                </div>
+
+                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 17, color: 'rgba(26,18,8,0.72)', lineHeight: 1.45, marginBottom: 8 }}>
+                  {n.texto}
+                </p>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
+                  {n.seccion && (
+                    <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: meta.color, background: `${meta.color}12`, padding: '3px 8px', borderRadius: 999, fontWeight: '700' }}>
+                      {n.seccion}
+                    </span>
+                  )}
+
+                  {n.afecta_a && (
+                    <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1.1, color: C.red, background: 'rgba(139,26,26,0.08)', padding: '3px 8px', borderRadius: 999, fontWeight: '700' }}>
+                      Afectó a: {n.afecta_a}
+                    </span>
+                  )}
+                </div>
+
+                <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, color: 'rgba(26,18,8,0.38)', letterSpacing: 1, fontWeight: '700' }}>
+                  {n.fecha} · {n.hora}
+                </p>
               </div>
-            )}
-            {/* Ícono de acción sobre el avatar */}
-            <div style={{ position: 'absolute', bottom: -2, right: -2, width: 16, height: 16, borderRadius: '50%', background: colorNotif(n.tipo), display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
-              <span style={{ color: '#fff', fontSize: 7, lineHeight: 1 }}><IconNotif tipo={n.tipo} /></span>
             </div>
-          </div>
 
-          {/* Contenido */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            {/* Nombre + acción */}
-            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: n.leida ? 'rgba(26,18,8,0.55)' : C.ink, lineHeight: 1.45, marginBottom: 4, fontWeight: n.leida ? '400' : '600' }}>
-              <span style={{ color: colorNotif(n.tipo), fontWeight: 700 }}>{n.nombre}</span>
-              {' '}{n.texto}
-            </p>
-
-            {/* Sección afectada */}
-            {n.seccion && (
-              <span style={{ display: 'inline-block', fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: colorNotif(n.tipo), background: colorNotif(n.tipo) + '12', padding: '2px 8px', borderRadius: 4, marginBottom: 4 }}>
-                {n.seccion}
-              </span>
+            {!n.leida && (
+              <div style={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                background: meta.color,
+                marginTop: 8,
+                flexShrink: 0,
+                boxShadow: meta.shadow,
+              }} />
             )}
-
-            {/* Si afecta a otro usuario */}
-            {n.afecta_a && (
-              <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, color: 'rgba(26,18,8,0.4)', letterSpacing: 0.5, marginBottom: 4 }}>
-                → Afecta a: <span style={{ color: C.red }}>{n.afecta_a}</span>
-              </p>
-            )}
-
-            {/* Fecha y hora */}
-            <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, color: 'rgba(26,18,8,0.3)', letterSpacing: 1, fontWeight: '600' }}>
-              {n.fecha}
-            </p>
           </div>
-
-          {/* Dot no leída */}
-          {!n.leida && <div style={{ width: 7, height: 7, borderRadius: '50%', background: C.purple, flexShrink: 0, marginTop: 6 }} />}
-        </div>
-      ))}
+        )
+      })}
     </div>
   </div>
 )}
             </div>
 
             {/* Usuario — clic abre modal perfil */}
-            <button onClick={() => setModalPerfil(true)} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: 8, transition: 'background 0.15s' }}
+              <button onClick={() => setModalPerfil(true)} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: 8, transition: 'background 0.15s', minWidth: 0 }}
               onMouseOver={e => e.currentTarget.style.background = 'rgba(26,18,8,0.04)'}
               onMouseOut={e => e.currentTarget.style.background = 'transparent'}
             >
               <Avatar email={usuario?.email} fotoUrl={fotoUrl} size={36} fontSize={16} />
-              <div style={{ textAlign: 'left' }}>
-                <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, color: 'rgba(26,18,8,0.65)', letterSpacing: 1, fontWeight: '700', lineHeight: 1 }}>{usuario?.email?.split('@')[0]}</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 3 }}>
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: C.green, boxShadow: `0 0 5px ${C.green}` }} />
-                  <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, color: 'rgba(26,18,8,0.35)', letterSpacing: 1, fontWeight: '600' }}>ACTIVO</span>
+              {!isMobile && (
+                <div style={{ textAlign: 'left', minWidth: 0 }}>
+                  <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, color: 'rgba(26,18,8,0.65)', letterSpacing: 1, fontWeight: '700', lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120 }}>
+                    {usuario?.email?.split('@')[0]}
+                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 3 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: C.green, boxShadow: `0 0 5px ${C.green}` }} />
+                    <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, color: 'rgba(26,18,8,0.35)', letterSpacing: 1, fontWeight: '600' }}>ACTIVO</span>
+                  </div>
                 </div>
-              </div>
+              )}
             </button>
           </div>
         </header>
 
-        <main style={{ flex: 1, padding: '32px 36px', overflowY: 'auto' }}>
+        <main style={{ flex: 1, padding: isMobile ? '18px 14px' : '32px 36px', overflowY: 'auto', minWidth: 0 }}>
           {renderContenido()}
         </main>
       </div>

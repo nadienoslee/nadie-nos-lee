@@ -20,6 +20,7 @@ import Talleres from './pages/Talleres'
 import Noticias from './pages/Noticias'
 import NotFound from './pages/NotFound'
 import Login from './admin/Login'
+import CambiarPassword from './admin/CambiarPassword'
 import Dashboard from './admin/Dashboard'
 import ProtectedRoute from './admin/ProtectedRoute'
 
@@ -48,8 +49,9 @@ function AppInner() {
       <Route path="/calendario"     element={<Layout><Calendario /></Layout>} />
       <Route path="/talleres"       element={<Layout><Talleres /></Layout>} />
       <Route path="/noticias"       element={<Layout><Noticias /></Layout>} />
-      <Route path="/admin/login"    element={<Login />} />
-      <Route path="/admin/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+<Route path="/admin/login"         element={<Login />} />
+      <Route path="/admin/cambiar-password" element={<CambiarPassword />} />
+      <Route path="/admin/dashboard"     element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="*"               element={<Layout><NotFound /></Layout>} />
     </Routes>
   )

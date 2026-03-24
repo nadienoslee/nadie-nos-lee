@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import logoDesktop from '../assets/LOGOCENTRADONG.png'
+import logoDesktop from '../assets/NADIENOSLEEV2NG.png'
 import logoMobile from '../assets/ICONSPAREJA.png'
 
 const links = [

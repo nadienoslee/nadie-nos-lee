@@ -422,17 +422,78 @@ export default function SeccionCRUD({ seccion }) {
                       {renderValor(item, col)}
                     </td>
                   ))}
-                  <td style={{ padding: '15px 18px' }}>
-                    <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+<td style={{ padding: '15px 18px' }}>
+                    <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end', alignItems: 'center' }}>
                       {campoPublicado && (
-                        <button onClick={() => togglePublicado(item)}
+                        <button
+                          onClick={() => togglePublicado(item)}
                           title={item[campoPublicado.key] ? 'Despublicar' : 'Publicar'}
-                          style={{ padding: '6px 10px', cursor: 'pointer', borderRadius: 4, background: item[campoPublicado.key] ? 'rgba(34,161,106,0.1)' : 'rgba(26,18,8,0.05)', color: item[campoPublicado.key] ? C.green : 'rgba(26,18,8,0.4)', border: `1px solid ${item[campoPublicado.key] ? 'rgba(34,161,106,0.25)' : 'rgba(26,18,8,0.1)'}`, fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '700', transition: 'all 0.15s' }}>
-                          {item[campoPublicado.key] ? '✓ Pub.' : '○ Oculto'}
+                          style={{
+                            width: 32, height: 32, cursor: 'pointer', borderRadius: 6,
+                            background: item[campoPublicado.key] ? 'rgba(34,161,106,0.1)' : 'rgba(26,18,8,0.05)',
+                            color: item[campoPublicado.key] ? C.green : 'rgba(26,18,8,0.35)',
+                            border: `1px solid ${item[campoPublicado.key] ? 'rgba(34,161,106,0.25)' : 'rgba(26,18,8,0.1)'}`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            transition: 'all 0.15s', flexShrink: 0,
+                          }}
+                          onMouseOver={e => {
+                            e.currentTarget.style.background = item[campoPublicado.key] ? 'rgba(34,161,106,0.2)' : 'rgba(26,18,8,0.1)'
+                          }}
+                          onMouseOut={e => {
+                            e.currentTarget.style.background = item[campoPublicado.key] ? 'rgba(34,161,106,0.1)' : 'rgba(26,18,8,0.05)'
+                          }}
+                        >
+                          {item[campoPublicado.key] ? (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>
+                            </svg>
+                          ) : (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19C5 19 1 12 1 12a21.8 21.8 0 0 1 5.06-5.94"/>
+                              <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.8 21.8 0 0 1-3.22 4.31"/>
+                              <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"/><path d="M1 1l22 22"/>
+                            </svg>
+                          )}
                         </button>
                       )}
-                      <button onClick={() => abrirEditar(item)} style={{ padding: '6px 10px', cursor: 'pointer', borderRadius: 4, background: 'transparent', color: 'rgba(26,18,8,0.55)', border: '1px solid rgba(26,18,8,0.12)', fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '700' }}>Editar</button>
-                      <button onClick={() => solicitarEliminar(item)} style={{ padding: '6px 10px', cursor: 'pointer', borderRadius: 4, background: 'transparent', color: C.red, border: `1px solid ${C.red}44`, fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '700' }}>Borrar</button>
+                      <button
+                        onClick={() => abrirEditar(item)}
+                        title="Editar"
+                        style={{
+                          width: 32, height: 32, cursor: 'pointer', borderRadius: 6,
+                          background: 'transparent', color: 'rgba(26,18,8,0.45)',
+                          border: '1px solid rgba(26,18,8,0.12)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          transition: 'all 0.15s', flexShrink: 0,
+                        }}
+                        onMouseOver={e => { e.currentTarget.style.background = 'rgba(26,18,8,0.06)'; e.currentTarget.style.color = C.ink }}
+                        onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(26,18,8,0.45)' }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => solicitarEliminar(item)}
+                        title="Eliminar"
+                        style={{
+                          width: 32, height: 32, cursor: 'pointer', borderRadius: 6,
+                          background: 'transparent', color: `${C.red}99`,
+                          border: `1px solid ${C.red}33`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          transition: 'all 0.15s', flexShrink: 0,
+                        }}
+                        onMouseOver={e => { e.currentTarget.style.background = `${C.red}10`; e.currentTarget.style.color = C.red }}
+                        onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = `${C.red}99` }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6l-1 14H6L5 6"/>
+                          <path d="M10 11v6"/><path d="M14 11v6"/>
+                          <path d="M9 6V4h6v2"/>
+                        </svg>
+                      </button>
                     </div>
                   </td>
                 </tr>

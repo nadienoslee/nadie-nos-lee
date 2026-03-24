@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import logoFooter from '../assets/LOGOLADOBL.png'
+import logoFooter from '../assets/NADIENOSLEEV2BL.png'
 
 export default function Footer() {
   return (

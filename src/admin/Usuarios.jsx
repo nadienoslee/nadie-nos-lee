@@ -51,7 +51,7 @@ export default function Usuarios({ esAdmin = true }) {
   const [passManual, setPassManual]     = useState('')
   const [passErrores, setPassErrores]   = useState([])
   const [modoPass, setModoPass]         = useState('auto')
-  const [form, setForm] = useState({ nombre: '', rol: 'editor', permisos: { ...permisosDefault } })
+  const [form, setForm] = useState({ nombre: '', email: '', rol: 'editor', permisos: { ...permisosDefault } })
 
   const usernamePreview = generarUsername(form.nombre)
 
@@ -82,43 +82,44 @@ export default function Usuarios({ esAdmin = true }) {
   }
 
   const abrirNuevo = () => {
-    setForm({ nombre: '', rol: 'editor', permisos: { ...permisosDefault } })
+    setForm({ nombre: '', email: '', rol: 'editor', permisos: { ...permisosDefault } })
     setPassGenerada(generarPassword())
-    setPassManual(''); setPassErrores([]); setModoPass('auto')
+    setPassManual('')
+    setPassErrores([])
+    setModoPass('auto')
     setModalNuevo(true)
   }
 
-  const crearUsuario = async () => {
+const crearUsuario = async () => {
     const pass = modoPass === 'auto' ? passGenerada : passManual
     const errores = validarPassword(pass)
     if (errores.length > 0) { setPassErrores(errores); return }
     if (!form.nombre.trim()) { mostrarFeedback('El nombre es obligatorio', 'error'); return }
+    if (!form.email.trim()) { mostrarFeedback('El correo es obligatorio', 'error'); return }
 
     const username = generarUsername(form.nombre)
     if (!username) { mostrarFeedback('Nombre no válido', 'error'); return }
     if (usuarios.some(u => u.username === username)) {
       mostrarFeedback(`El usuario "@${username}" ya existe`, 'error'); return
     }
-
-    const nuevoUsuario = {
-      username,
-      nombre: form.nombre,
-      email: `${username}@nadienoslee.com`,
-      rol: form.rol,
-      activo: true,
-      permisos: form.permisos,
-      debe_cambiar_pass: true,
-      pass_temporal: pass,
+    if (usuarios.some(u => u.email?.toLowerCase() === form.email.trim().toLowerCase())) {
+      mostrarFeedback(`El correo "${form.email}" ya está registrado`, 'error'); return
     }
 
-    const { data, error } = await supabase
-      .from('perfiles')
-      .insert(nuevoUsuario)
-      .select()
-      .single()
+    const { data, error } = await supabase.functions.invoke('admin-users', {
+      body: {
+        action: 'create',
+        email: form.email.trim().toLowerCase(),
+        password: pass,
+        nombre: form.nombre,
+        username,
+        rol: form.rol,
+        permisos: form.permisos,
+      },
+    })
 
-    if (error) {
-      mostrarFeedback(`Error al crear usuario: ${error.message}`, 'error')
+    if (error || data?.error) {
+      mostrarFeedback(`Error al crear usuario: ${data?.error || error.message}`, 'error')
     } else {
       setModalNuevo(false)
       mostrarFeedback(`Usuario "${form.nombre}" creado · @${username} · Contraseña: ${pass}`)
@@ -128,17 +129,37 @@ export default function Usuarios({ esAdmin = true }) {
 
   const guardarEdicion = async () => {
     const username = generarUsername(form.nombre)
+
+    if (!form.nombre.trim()) {
+      mostrarFeedback('El nombre es obligatorio', 'error')
+      return
+    }
+
+    if (!form.email.trim()) {
+      mostrarFeedback('El correo es obligatorio', 'error')
+      return
+    }
+
     const { error } = await supabase
       .from('perfiles')
-      .update({ nombre: form.nombre, username, rol: form.rol, permisos: form.permisos })
+      .update({
+        nombre: form.nombre,
+        email: form.email,
+        username,
+        rol: form.rol,
+        permisos: form.permisos,
+      })
       .eq('id', modalEditar.id)
 
-    if (error) { mostrarFeedback('Error al actualizar', 'error'); return }
+    if (error) {
+      mostrarFeedback('Error al actualizar', 'error')
+      return
+    }
+
     setModalEditar(null)
     mostrarFeedback('Usuario actualizado')
     cargarUsuarios()
   }
-
   const toggleActivo = async (usuario) => {
     const { error } = await supabase
       .from('perfiles')
@@ -168,14 +189,38 @@ export default function Usuarios({ esAdmin = true }) {
     if (!error) { cargarUsuarios(); mostrarFeedback(`${usuario.nombre} ahora es ${nuevoRol}`) }
   }
 
-  const eliminarUsuario = async (id) => {
+const eliminarUsuario = async (id) => {
+    // Obtener el user_id de Auth antes de eliminar
+    const { data: perfil, error: perfilError } = await supabase
+      .from('perfiles')
+      .select('user_id, nombre')
+      .eq('id', id)
+      .single()
+
+    if (perfilError || !perfil) {
+      mostrarFeedback('No se encontró el perfil', 'error'); return
+    }
+
+    // Eliminar de Supabase Auth (si tiene user_id vinculado)
+    if (perfil.user_id) {
+      const { data: authData, error: authError } = await supabase.functions.invoke('admin-users', {
+        body: { action: 'delete', userId: perfil.user_id },
+      })
+      if (authError || authData?.error) {
+        mostrarFeedback(`Error al revocar acceso: ${authData?.error || authError.message}`, 'error')
+        return
+      }
+    }
+
+    // Eliminar perfil (contribuciones —escrituras, notas, etc.— se conservan por nombre de autor)
     const { error } = await supabase
       .from('perfiles')
       .delete()
       .eq('id', id)
-    if (error) { mostrarFeedback('Error al eliminar', 'error'); return }
+
+    if (error) { mostrarFeedback('Error al eliminar perfil', 'error'); return }
     setConfirmEliminar(null)
-    mostrarFeedback('Usuario eliminado', 'advertencia')
+    mostrarFeedback('Usuario eliminado · Sus contribuciones se conservan', 'advertencia')
     cargarUsuarios()
   }
 
@@ -231,7 +276,9 @@ export default function Usuarios({ esAdmin = true }) {
                       {!u.activo && <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: '#8B1A1A', background: '#8B1A1A22', padding: '3px 10px', borderRadius: 4 }}>Inactivo</span>}
                       {u.debe_cambiar_pass && <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: '#b8943a', background: '#b8943a22', padding: '3px 10px', borderRadius: 4 }}>Cambio pendiente</span>}
                     </div>
-                    <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, color: 'rgba(26,18,8,0.4)', letterSpacing: 1, fontWeight: '600' }}>Desde {new Date(u.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                    <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, color: 'rgba(26,18,8,0.4)', letterSpacing: 1, fontWeight: '600' }}>
+                      {u.email || 'Sin correo'} · Desde {new Date(u.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </p>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
                       {permisos.map(p => (
                         <span key={p} style={{ fontFamily: "'Courier Prime', monospace", fontSize: 8, letterSpacing: 1, textTransform: 'uppercase', padding: '3px 8px', borderRadius: 4, background: u.permisos?.[p] ? '#22a16a18' : 'rgba(26,18,8,0.04)', color: u.permisos?.[p] ? '#22a16a' : 'rgba(26,18,8,0.25)', border: `1px solid ${u.permisos?.[p] ? '#22a16a33' : 'rgba(26,18,8,0.08)'}`, fontWeight: '700' }}>
@@ -243,7 +290,20 @@ export default function Usuarios({ esAdmin = true }) {
                 </div>
                 {esAdmin && (
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <button onClick={() => { setModalEditar(u); setForm({ nombre: u.nombre, rol: u.rol, permisos: { ...(u.permisos || permisosDefault) } }) }} style={{ ...btnP('transparent'), border: '1px solid rgba(26,18,8,0.15)', color: 'rgba(26,18,8,0.6)' }}>Editar</button>
+                    <button
+                      onClick={() => {
+                        setModalEditar(u)
+                        setForm({
+                          nombre: u.nombre,
+                          email: u.email || '',
+                          rol: u.rol,
+                          permisos: { ...(u.permisos || permisosDefault) },
+                        })
+                      }}
+                      style={{ ...btnP('transparent'), border: '1px solid rgba(26,18,8,0.15)', color: 'rgba(26,18,8,0.6)' }}
+                    >
+                      Editar
+                    </button>
                     <button onClick={() => resetearPass(u)} style={{ ...btnP('transparent'), border: '1px solid rgba(184,148,58,0.4)', color: '#b8943a' }}>Reset pass</button>
                     <button onClick={() => hacerAdmin(u)} style={{ ...btnP('transparent'), border: '1px solid rgba(155,45,142,0.3)', color: '#9B2D8E' }}>{u.rol === 'admin' ? 'Quitar admin' : 'Hacer admin'}</button>
                     <button onClick={() => toggleActivo(u)} style={{ ...btnP('transparent'), border: `1px solid ${u.activo ? 'rgba(139,26,26,0.3)' : 'rgba(34,161,106,0.3)'}`, color: u.activo ? '#8B1A1A' : '#22a16a' }}>{u.activo ? 'Desactivar' : 'Activar'}</button>
@@ -271,7 +331,25 @@ export default function Usuarios({ esAdmin = true }) {
               <button onClick={() => setModalNuevo(false)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: 'rgba(26,18,8,0.4)' }}>✕</button>
             </div>
             <label style={labelStyle}>Nombre completo</label>
-            <input style={inputStyle} placeholder="Nombre Apellido" value={form.nombre} onChange={handleNombreChange} onFocus={e => e.target.style.borderColor = '#9B2D8E'} onBlur={e => e.target.style.borderColor = 'rgba(26,18,8,0.12)'} />
+            <input
+              style={inputStyle}
+              placeholder="Nombre Apellido"
+              value={form.nombre}
+              onChange={handleNombreChange}
+              onFocus={e => e.target.style.borderColor = '#9B2D8E'}
+              onBlur={e => e.target.style.borderColor = 'rgba(26,18,8,0.12)'}
+            />
+
+            <label style={labelStyle}>Correo electrónico</label>
+            <input
+              style={inputStyle}
+              type="email"
+              placeholder="correo@empresa.com"
+              value={form.email}
+              onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
+              onFocus={e => e.target.style.borderColor = '#9B2D8E'}
+              onBlur={e => e.target.style.borderColor = 'rgba(26,18,8,0.12)'}
+            />
             {form.nombre ? (
               <span style={hintStyle}>Usuario: <strong style={{ color: '#9B2D8E', letterSpacing: 1 }}>@{usernamePreview || '—'}</strong><span style={{ color: 'rgba(26,18,8,0.3)', marginLeft: 8 }}>· Nombre de acceso al panel</span></span>
             ) : (
@@ -329,8 +407,30 @@ export default function Usuarios({ esAdmin = true }) {
               <button onClick={() => setModalEditar(null)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: 'rgba(26,18,8,0.4)' }}>✕</button>
             </div>
             <label style={labelStyle}>Nombre</label>
-            <input style={inputStyle} value={form.nombre} onChange={handleNombreChange} onFocus={e => e.target.style.borderColor = '#9B2D8E'} onBlur={e => e.target.style.borderColor = 'rgba(26,18,8,0.12)'} />
-            {form.nombre && <span style={hintStyle}>Usuario: <strong style={{ color: '#9B2D8E' }}>@{generarUsername(form.nombre)}</strong></span>}
+            <input
+              style={inputStyle}
+              value={form.nombre}
+              onChange={handleNombreChange}
+              onFocus={e => e.target.style.borderColor = '#9B2D8E'}
+              onBlur={e => e.target.style.borderColor = 'rgba(26,18,8,0.12)'}
+            />
+
+            {form.nombre && (
+              <span style={hintStyle}>
+                Usuario: <strong style={{ color: '#9B2D8E' }}>@{generarUsername(form.nombre)}</strong>
+              </span>
+            )}
+
+            <label style={labelStyle}>Correo electrónico</label>
+            <input
+              style={inputStyle}
+              type="email"
+              value={form.email}
+              onChange={e => setForm({ ...form, email: e.target.value })}
+              onFocus={e => e.target.style.borderColor = '#9B2D8E'}
+              onBlur={e => e.target.style.borderColor = 'rgba(26,18,8,0.12)'}
+            />
+
             <label style={{ ...labelStyle, marginTop: 8 }}>Rol</label>
             <select style={{ ...inputStyle, cursor: 'pointer', marginBottom: 20 }} value={form.rol} onChange={e => setForm({ ...form, rol: e.target.value })}>
               <option value="editor">Editor</option>

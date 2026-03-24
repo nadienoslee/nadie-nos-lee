@@ -8,21 +8,6 @@ const C = {
 }
 
 export const CONFIG_SECCIONES = {
-  notas: {
-    tabla: 'notas', titulo: 'Notas', color: C.purple,
-    campos: [
-      { key: 'titulo',    label: 'Título',      tipo: 'text',     requerido: true },
-      { key: 'autor',     label: 'Autor',        tipo: 'text',     requerido: true },
-      { key: 'categoria', label: 'Categoría',    tipo: 'select',   opciones: ['Ensayo', 'Reseña', 'Reflexión', 'Entrevista', 'Otro'] },
-      { key: 'extracto',  label: 'Extracto',     tipo: 'textarea', rows: 3 },
-      { key: 'contenido', label: 'Contenido',    tipo: 'textarea', rows: 10 },
-{ key: 'minutos_lectura', label: 'Min. lectura', tipo: 'number' },
-{ key: 'imagen_url', label: 'URL imagen', tipo: 'text', placeholder: 'https://...' },
-{ key: 'link_url', label: 'Enlace externo', tipo: 'text', placeholder: 'https://instagram.com/p/...' },
-{ key: 'publicado', label: 'Publicado', tipo: 'toggle' },
-    ],
-    columnas: ['titulo', 'autor', 'categoria', 'publicado'],
-  },
   lecturas: {
     tabla: 'lecturas', titulo: 'Lecturas recomendadas', color: C.gold,
     campos: [
@@ -63,21 +48,7 @@ convocatorias: {
     ],
     columnas: ['titulo', 'estado', 'fecha_cierre', 'publicado'],
   },
-  archivo: {
-    tabla: 'escrituras', titulo: 'Archivo de escrituras', color: C.gold,
-    campos: [
-      { key: 'titulo',      label: 'Título',      tipo: 'text',     requerido: true },
-      { key: 'autor',       label: 'Autor',       tipo: 'text',     requerido: true },
-      { key: 'genero',      label: 'Género',      tipo: 'select', opciones: ['Narrativa', 'Poesía', 'Ensayo', 'Crónica', 'Microficción'] },
-      { key: 'semana',      label: 'Semana',      tipo: 'number' },
-      { key: 'fragmento',   label: 'Fragmento',   tipo: 'textarea', rows: 4 },
-      { key: 'contenido',   label: 'Contenido',   tipo: 'textarea', rows: 12 },
-      { key: 'imagen_url',  label: 'URL imagen (libro/autor)', tipo: 'text', placeholder: 'https://...' },
-      { key: 'publicado',   label: 'Publicado',   tipo: 'toggle' },
-    ],
-    columnas: ['titulo', 'autor', 'genero', 'semana', 'publicado'],
-  },
-  eventos: {
+eventos: {
     tabla: 'eventos', titulo: 'Eventos', color: C.purple,
     campos: [
       { key: 'titulo',            label: 'Título',             tipo: 'text',     requerido: true },

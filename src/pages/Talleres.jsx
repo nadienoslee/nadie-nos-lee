@@ -99,7 +99,14 @@ export default function Talleres() {
   usePageTitle('NADIE NOS LEE | TALLERES')
   const [talleres, setTalleres]     = useState([])
   const [cargando, setCargando]     = useState(true)
-const [filtroPeriodo, setFiltroPeriodo] = useState('todos')
+  const [filtroPeriodo, setFiltroPeriodo] = useState('todos')
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   useEffect(() => {
     const cargar = async () => {
@@ -129,8 +136,8 @@ const filtrados = filtrarPorPeriodo(talleres, filtroPeriodo)
 
   return (
     <main>
-      {/* HERO */}
-      <section style={{ background: '#f5ede0', padding: '100px 40px 80px', borderBottom: '1px solid rgba(58,171,220,0.15)', position: 'relative', overflow: 'hidden' }}>
+{/* HERO */}
+      <section style={{ background: '#f5ede0', padding: isMobile ? '80px 20px 60px' : '100px 40px 80px', borderBottom: '1px solid rgba(58,171,220,0.15)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 60% 50%, rgba(58,171,220,0.06) 0%, transparent 60%)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 860, margin: '0 auto', textAlign: 'center' }}>
           <AnimatedSection direction="up">
@@ -143,9 +150,9 @@ const filtrados = filtrarPorPeriodo(talleres, filtroPeriodo)
         </div>
       </section>
 
-      {/* FILTROS */}
-<section style={{ background: '#faf6ee', padding: '0 40px', borderBottom: '1px solid rgba(26,18,8,0.06)' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', gap: 0, flexWrap: 'wrap', alignItems: 'center' }}>
+{/* FILTROS */}
+<section style={{ background: '#faf6ee', padding: isMobile ? '0 12px' : '0 40px', borderBottom: '1px solid rgba(26,18,8,0.06)', overflowX: 'auto' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', gap: 0, flexWrap: 'nowrap', alignItems: 'center', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           {FILTROS_PERIODO.map(f => (
             <button key={f.id} onClick={() => setFiltroPeriodo(f.id)} style={{
               fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 2, textTransform: 'uppercase',
@@ -157,8 +164,8 @@ const filtrados = filtrarPorPeriodo(talleres, filtroPeriodo)
         </div>
       </section>
 
-      {/* CARDS */}
-      <section style={{ background: '#faf6ee', padding: '60px 40px 120px' }}>
+{/* CARDS */}
+      <section style={{ background: '#faf6ee', padding: isMobile ? '32px 16px 80px' : '60px 40px 120px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           {cargando ? (
             <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: 'rgba(26,18,8,0.35)', fontStyle: 'italic', textAlign: 'center', padding: '60px 0' }}>Cargando...</p>

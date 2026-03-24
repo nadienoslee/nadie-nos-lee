@@ -90,6 +90,13 @@ export default function TallerDetalle() {
   const [formulario, setFormulario] = useState({})
   const [enviado, setEnviado] = useState(false)
   const [enviando, setEnviando] = useState(false)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
 usePageTitle(`NADIE NOS LEE | ${t?.titulo || 'TALLER'}`)
 
@@ -183,7 +190,7 @@ const color = t.color || '#3AABDC'
       {/* HERO */}
       <section style={{
         background: t.imagen_url ? '#efe7dc' : `linear-gradient(135deg, ${color} 0%, ${color}cc 50%, #1a1208 100%)`,
-        padding: '80px 40px 60px', position: 'relative', overflow: 'hidden', minHeight: 360,
+        padding: isMobile ? '60px 20px 40px' : '80px 40px 60px', position: 'relative', overflow: 'hidden', minHeight: isMobile ? 280 : 360,
         display: 'flex', alignItems: 'flex-end',
       }}>
         {t.imagen_url && (
@@ -222,7 +229,7 @@ const color = t.color || '#3AABDC'
       </section>
 
       {/* CONTENIDO */}
-      <section style={{ background: '#faf6ee', padding: '60px 40px 80px' }}>
+<section style={{ background: '#faf6ee', padding: isMobile ? '32px 16px 56px' : '60px 40px 80px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 48 }}>
 
           {/* COLUMNA IZQUIERDA */}
@@ -318,7 +325,7 @@ const color = t.color || '#3AABDC'
 
       {/* FORMULARIO */}
       {t.activo && inscripcionAbierta && estadoAuto?.label !== 'Finalizado' && estadoAuto?.label !== 'En curso' && (
-        <section style={{ background: '#f5ede0', padding: '80px 40px 120px', borderTop: '1px solid rgba(26,18,8,0.08)' }}>
+      <section style={{ background: '#f5ede0', padding: isMobile ? '48px 16px 80px' : '80px 40px 120px', borderTop: '1px solid rgba(26,18,8,0.08)' }}>
           <div style={{ maxWidth: 760, margin: '0 auto' }}>
             <AnimatedSection direction="up">
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }}>
@@ -348,7 +355,7 @@ const color = t.color || '#3AABDC'
             ) : (
               <AnimatedSection direction="up" delay={0.1}>
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', background: '#fff', border: '1px solid rgba(26,18,8,0.08)' }}>
-                  <div style={{ padding: '36px 40px' }}>
+<div style={{ padding: isMobile ? '24px 20px' : '36px 40px' }}>
                     <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 3, textTransform: 'uppercase', color, marginBottom: 28, fontWeight: '700' }}>Tus datos</p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                       {getCampos().map(campo => {
@@ -379,7 +386,7 @@ const color = t.color || '#3AABDC'
                     </div>
                   </div>
 
-                  <div style={{ padding: '24px 40px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, borderTop: '1px solid rgba(26,18,8,0.06)' }}>
+<div style={{ padding: isMobile ? '20px 20px 32px' : '24px 40px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, borderTop: '1px solid rgba(26,18,8,0.06)' }}>
                     <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1, color: 'rgba(26,18,8,0.35)', maxWidth: 320, lineHeight: 1.6 }}>
                       Recibirás un correo de confirmación con los detalles.
                     </p>

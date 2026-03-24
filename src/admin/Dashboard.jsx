@@ -57,10 +57,8 @@ const secciones = [
   { id: 'estadisticas',  label: 'Estadísticas',      icon: 'stats',   grupo: 'panel' },
   { id: 'calendario',    label: 'Calendario',        icon: 'cal',     grupo: 'panel' },
   { id: 'escritura',     label: 'Escritura semana',  icon: 'edit',    grupo: 'editorial' },
-  { id: 'notas',         label: 'Notas',             icon: 'note',    grupo: 'editorial' },
   { id: 'lecturas',      label: 'Lecturas',          icon: 'book',    grupo: 'editorial' },
   { id: 'convocatorias', label: 'Convocatorias',     icon: 'call',    grupo: 'editorial' },
-  { id: 'archivo',       label: 'Archivo',           icon: 'archive', grupo: 'editorial' },
   { id: 'eventos',       label: 'Eventos',           icon: 'event',   grupo: 'comunidad' },
   { id: 'talleres',      label: 'Talleres',          icon: 'taller',  grupo: 'comunidad' },
   { id: 'noticias',      label: 'Noticias',          icon: 'news',    grupo: 'comunidad' },
@@ -1611,7 +1609,7 @@ case 'escritura': return (
       case 'usuarios': return <Usuarios esAdmin={true} />
 
 default:
-  const seccionesConCRUD = ['notas', 'lecturas', 'convocatorias', 'archivo', 'eventos', 'talleres', 'noticias', 'banners', 'miembros']
+  const seccionesConCRUD = ['lecturas', 'convocatorias', 'eventos', 'talleres', 'noticias', 'banners', 'miembros']
   if (seccionesConCRUD.includes(seccionActiva)) {
     return <SeccionCRUD seccion={seccionActiva} />
   }

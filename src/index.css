@@ -26,6 +26,8 @@ body {
 }
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 ::-webkit-scrollbar { width: 5px; }

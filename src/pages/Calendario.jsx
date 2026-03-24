@@ -102,12 +102,19 @@ const [{ data: ev }, { data: tal }, { data: not }, { data: conv }] = await Promi
     }).length,
   })).filter(r => r.count > 0)
 
-  const btnNavStyle = { background: '#fff', border: '1px solid rgba(26,18,8,0.15)', color: '#1a1208', padding: '12px 24px', cursor: 'pointer', fontFamily: "'Courier Prime', monospace", fontSize: 16, transition: 'border-color 0.2s', borderRadius: 4 }
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  const btnNavStyle = { background: '#fff', border: '1px solid rgba(26,18,8,0.15)', color: '#1a1208', padding: isMobile ? '10px 16px' : '12px 24px', cursor: 'pointer', fontFamily: "'Courier Prime', monospace", fontSize: isMobile ? 18 : 16, transition: 'border-color 0.2s', borderRadius: 4 }
 
   return (
     <main>
-      {/* HERO */}
-      <section style={{ background: '#f5ede0', padding: '100px 40px 80px', borderBottom: '1px solid rgba(155,45,142,0.15)', position: 'relative', overflow: 'hidden' }}>
+   {/* HERO */}
+      <section style={{ background: '#f5ede0', padding: isMobile ? '80px 20px 60px' : '100px 40px 80px', borderBottom: '1px solid rgba(155,45,142,0.15)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 60% 50%, rgba(155,45,142,0.06) 0%, transparent 60%)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 860, margin: '0 auto', textAlign: 'center' }}>
           <AnimatedSection direction="up">
@@ -120,9 +127,9 @@ const [{ data: ev }, { data: tal }, { data: not }, { data: conv }] = await Promi
         </div>
       </section>
 
-      {/* FILTROS */}
-      <section style={{ background: '#faf6ee', padding: '0 40px', borderBottom: '1px solid rgba(26,18,8,0.06)' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+{/* FILTROS */}
+      <section style={{ background: '#faf6ee', padding: isMobile ? '0 12px' : '0 40px', borderBottom: '1px solid rgba(26,18,8,0.06)', overflowX: 'auto' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', gap: 4, flexWrap: 'nowrap', alignItems: 'center', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           {[{ id: 'todos', label: 'Todos' }, ...Object.entries(TIPO_LABEL).map(([id, label]) => ({ id, label }))].map(f => (
             <button key={f.id} onClick={() => { setFiltroTipo(f.id); setDiaSeleccionado(null) }}
               style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', background: 'none', border: 'none', color: filtroTipo === f.id ? '#1a1208' : 'rgba(26,18,8,0.35)', borderBottom: filtroTipo === f.id ? `3px solid ${f.id === 'todos' ? '#9B2D8E' : TIPO_COLOR[f.id]}` : '3px solid transparent', padding: '18px 16px', cursor: 'pointer', transition: 'color 0.2s' }}
@@ -131,7 +138,7 @@ const [{ data: ev }, { data: tal }, { data: not }, { data: conv }] = await Promi
         </div>
       </section>
 
-      <section style={{ background: '#faf6ee', padding: '60px 40px 120px' }}>
+<section style={{ background: '#faf6ee', padding: isMobile ? '32px 16px 80px' : '60px 40px 120px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
           {/* RESUMEN DEL MES */}
@@ -149,7 +156,7 @@ const [{ data: ev }, { data: tal }, { data: not }, { data: conv }] = await Promi
             </AnimatedSection>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: diaSeleccionado ? 'repeat(auto-fit, minmax(560px, 1fr))' : '1fr', gap: 32, alignItems: 'start' }}>
+         <div style={{ display: 'grid', gridTemplateColumns: (diaSeleccionado && !isMobile) ? 'repeat(auto-fit, minmax(560px, 1fr))' : '1fr', gap: 32, alignItems: 'start' }}>
 
             {/* CALENDARIO */}
             <AnimatedSection direction="up">
@@ -188,25 +195,35 @@ const [{ data: ev }, { data: tal }, { data: not }, { data: conv }] = await Promi
                       // (sin cambio — hoy usa getDate() local que sí es correcto)
                       const seleccionado = dia && dia === diaSeleccionado
                       return (
-                        <div key={idx}
+                      <div key={idx}
                           onClick={() => dia && setDiaSeleccionado(seleccionado ? null : dia)}
-                          style={{ minHeight: 90, padding: '8px 6px 6px', borderRight: '1px solid rgba(26,18,8,0.04)', borderBottom: '1px solid rgba(26,18,8,0.04)', background: seleccionado ? 'rgba(155,45,142,0.07)' : esHoy ? 'rgba(58,171,220,0.05)' : '#fff', cursor: dia ? 'pointer' : 'default', transition: 'background 0.15s' }}
+                          style={{ minHeight: isMobile ? 48 : 90, padding: isMobile ? '4px 2px' : '8px 6px 6px', borderRight: '1px solid rgba(26,18,8,0.04)', borderBottom: '1px solid rgba(26,18,8,0.04)', background: seleccionado ? 'rgba(155,45,142,0.07)' : esHoy ? 'rgba(58,171,220,0.05)' : '#fff', cursor: dia ? 'pointer' : 'default', transition: 'background 0.15s' }}
                           onMouseOver={e => { if (dia && !seleccionado) e.currentTarget.style.background = 'rgba(26,18,8,0.025)' }}
                           onMouseOut={e => { if (dia && !seleccionado) e.currentTarget.style.background = esHoy ? 'rgba(58,171,220,0.05)' : '#fff' }}
                         >
                           {dia && (
                             <>
-                              <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 12, fontWeight: '700', color: esHoy ? '#3AABDC' : seleccionado ? '#9B2D8E' : 'rgba(26,18,8,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: '50%', background: esHoy ? 'rgba(58,171,220,0.15)' : seleccionado ? 'rgba(155,45,142,0.12)' : 'transparent', marginBottom: 4 }}>{dia}</span>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                {itemsHoy.slice(0, 3).map(it => (
-                                  <div key={it.id} style={{ background: it.color + '20', borderLeft: `2px solid ${it.color}`, padding: '1px 5px', borderRadius: '0 2px 2px 0', overflow: 'hidden' }}>
-                                    <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 8, color: it.color, fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', letterSpacing: 0.3 }}>{it.label}</span>
-                                  </div>
-                                ))}
-                                {itemsHoy.length > 3 && (
-                                  <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 8, color: 'rgba(26,18,8,0.4)', paddingLeft: 4 }}>+{itemsHoy.length - 3} más</span>
-                                )}
-                              </div>
+                            <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: isMobile ? 10 : 12, fontWeight: '700', color: esHoy ? '#3AABDC' : seleccionado ? '#9B2D8E' : 'rgba(26,18,8,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', width: isMobile ? 20 : 26, height: isMobile ? 20 : 26, borderRadius: '50%', background: esHoy ? 'rgba(58,171,220,0.15)' : seleccionado ? 'rgba(155,45,142,0.12)' : 'transparent', marginBottom: isMobile ? 2 : 4 }}>{dia}</span>
+{!isMobile && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                  {itemsHoy.slice(0, 3).map(it => (
+                                    <div key={it.id} style={{ background: it.color + '20', borderLeft: `2px solid ${it.color}`, padding: '1px 5px', borderRadius: '0 2px 2px 0', overflow: 'hidden' }}>
+                                      <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 8, color: it.color, fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', letterSpacing: 0.3 }}>{it.label}</span>
+                                    </div>
+                                  ))}
+                                  {itemsHoy.length > 3 && (
+                                    <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 8, color: 'rgba(26,18,8,0.4)', paddingLeft: 4 }}>+{itemsHoy.length - 3} más</span>
+                                  )}
+                                </div>
+                              )}
+                              {isMobile && itemsHoy.length > 0 && (
+                                <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+                                  {itemsHoy.slice(0, 2).map(it => (
+                                    <div key={it.id} style={{ width: 5, height: 5, borderRadius: '50%', background: it.color, flexShrink: 0 }} />
+                                  ))}
+                                  {itemsHoy.length > 2 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(26,18,8,0.25)', flexShrink: 0 }} />}
+                                </div>
+                              )}
                             </>
                           )}
                         </div>

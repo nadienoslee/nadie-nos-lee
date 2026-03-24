@@ -98,8 +98,9 @@ export default function ConvocatoriaDetalle() {
 const [formulario, setFormulario] = useState({ nombre: '', email: '', pseudonimo: '', texto: '', convocatoria_id: id })
   const [archivos, setArchivos]     = useState([])
   const [enviado, setEnviado]       = useState(false)
-  const [enviando, setEnviando]     = useState(false)
+const [enviando, setEnviando]     = useState(false)
   const [errores, setErrores]       = useState({})
+  const [isMobile, setIsMobile]     = useState(window.innerWidth <= 768)
 
   usePageTitle(`NADIE NOS LEE | ${c?.titulo || 'CONVOCATORIA'}`)
 
@@ -111,6 +112,12 @@ const [formulario, setFormulario] = useState({ nombre: '', email: '', pseudonimo
     }
     cargar()
   }, [id])
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   if (cargando) return (
     <main style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#faf6ee' }}>
@@ -127,7 +134,7 @@ const [formulario, setFormulario] = useState({ nombre: '', email: '', pseudonimo
     </main>
   )
 
-  const color = c.color || '#8B1A1A'
+const color = c.color || '#8B1A1A'
   const est   = ESTADO_CONFIG[c.estado] || ESTADO_CONFIG['Cerrada']
 
   const validar = () => {
@@ -194,7 +201,7 @@ const inputStyle = {
       {/* HERO */}
       <section style={{
         background: c.imagen_url ? '#efe7dc' : `linear-gradient(135deg, ${color} 0%, ${color}cc 50%, #1a1208 100%)`,
-        padding: '80px 40px 60px', position: 'relative', overflow: 'hidden', minHeight: 360,
+        padding: isMobile ? '60px 20px 40px' : '80px 40px 60px', position: 'relative', overflow: 'hidden', minHeight: isMobile ? 280 : 360,
         display: 'flex', alignItems: 'flex-end',
       }}>
         {c.imagen_url && (
@@ -229,7 +236,7 @@ const inputStyle = {
       </section>
 
       {/* CONTENIDO */}
-      <section style={{ background: '#faf6ee', padding: '60px 40px 80px' }}>
+      <section style={{ background: '#faf6ee', padding: isMobile ? '32px 16px 56px' : '60px 40px 80px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 48 }}>
 
           {/* COLUMNA IZQUIERDA */}
@@ -331,7 +338,7 @@ const inputStyle = {
 
       {/* FORMULARIO — solo si está abierta */}
       {c.estado === 'Abierta' && (
-        <section style={{ background: '#f5ede0', padding: '80px 40px 120px', borderTop: '1px solid rgba(26,18,8,0.08)' }}>
+       <section style={{ background: '#f5ede0', padding: isMobile ? '48px 16px 80px' : '80px 40px 120px', borderTop: '1px solid rgba(26,18,8,0.08)' }}>
           <div style={{ maxWidth: 760, margin: '0 auto' }}>
             <AnimatedSection direction="up">
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }}>
@@ -357,7 +364,7 @@ const inputStyle = {
               <AnimatedSection direction="up" delay={0.1}>
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', background: '#fff', border: '1px solid rgba(26,18,8,0.08)' }}>
 
-                  <div style={{ padding: '36px 40px', borderBottom: '1px solid rgba(26,18,8,0.06)' }}>
+               <div style={{ padding: isMobile ? '24px 20px' : '36px 40px', borderBottom: '1px solid rgba(26,18,8,0.06)' }}>
                     <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 3, textTransform: 'uppercase', color, marginBottom: 24, fontWeight: '700' }}>01 — Identificación</p>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20 }}>
                       <div>
@@ -389,13 +396,13 @@ const inputStyle = {
                   </div>
 
                   {/* Info conv */}
-                  <div style={{ padding: '20px 40px', background: color + '08', borderBottom: '1px solid rgba(26,18,8,0.06)', borderLeft: `4px solid ${color}` }}>
+                <div style={{ padding: isMobile ? '14px 20px' : '20px 40px', background: color + '08', borderBottom: '1px solid rgba(26,18,8,0.06)', borderLeft: `4px solid ${color}` }}>
                     <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', color, fontWeight: '700', marginBottom: 4 }}>{c.titulo}</p>
                     {c.generos?.length > 0 && <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: 'rgba(26,18,8,0.55)' }}>Géneros: {c.generos.join(', ')}</p>}
                     {c.extension && <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: 'rgba(26,18,8,0.55)' }}>Extensión: {c.extension}</p>}
                   </div>
 
-<div style={{ padding: '36px 40px', borderBottom: c.permite_archivo ? '1px solid rgba(26,18,8,0.06)' : 'none' }}>
+<div style={{ padding: isMobile ? '24px 20px' : '36px 40px', borderBottom: c.permite_archivo ? '1px solid rgba(26,18,8,0.06)' : 'none' }}>
                     <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 3, textTransform: 'uppercase', color, marginBottom: 24, fontWeight: '700' }}>02 — Tu texto</p>
                     <label style={labelStyle}>Texto <span style={{ color }}>*</span></label>
 <textarea required rows={10} placeholder="Pega o escribe tu texto aquí..." value={formulario.texto}
@@ -414,7 +421,7 @@ const inputStyle = {
 
                   {/* Archivos — solo si la convocatoria lo permite */}
                   {c.permite_archivo && (
-                    <div style={{ padding: '36px 40px', borderBottom: '1px solid rgba(26,18,8,0.06)' }}>
+                <div style={{ padding: isMobile ? '24px 20px' : '36px 40px', borderBottom: '1px solid rgba(26,18,8,0.06)' }}>
                       <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 3, textTransform: 'uppercase', color, marginBottom: 8, fontWeight: '700' }}>03 — Archivos adjuntos</p>
                       <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: 'rgba(26,18,8,0.5)', fontStyle: 'italic', marginBottom: 20 }}>
                         Puedes adjuntar hasta {c.limite_archivos || 3} archivo{(c.limite_archivos || 3) !== 1 ? 's' : ''} de respaldo (PDF, Word, TXT).
@@ -429,7 +436,7 @@ const inputStyle = {
                     </div>
                   )}
 
-                  <div style={{ padding: '24px 40px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, borderTop: '1px solid rgba(26,18,8,0.06)' }}>
+                  <div style={{ padding: isMobile ? '20px 20px 32px' : '24px 40px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, borderTop: '1px solid rgba(26,18,8,0.06)' }}>
                     <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1, color: 'rgba(26,18,8,0.35)', maxWidth: 320, lineHeight: 1.6 }}>
                       Tu información es confidencial y solo se usará para el proceso de selección.
                     </p>

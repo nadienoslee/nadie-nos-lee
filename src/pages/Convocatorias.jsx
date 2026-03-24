@@ -165,6 +165,13 @@ export default function Convocatorias() {
     setEnviado(true)
   }
 
+const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
   const inputStyle = {
     width: '100%', padding: '14px 18px',
     background: '#fff', border: '1px solid rgba(26,18,8,0.15)',
@@ -180,8 +187,8 @@ export default function Convocatorias() {
 
   return (
     <main>
-      {/* HERO */}
-      <section style={{ background: '#f5ede0', padding: '100px 40px 80px', borderBottom: '1px solid rgba(139,26,26,0.12)', position: 'relative', overflow: 'hidden' }}>
+    {/* HERO */}
+      <section style={{ background: '#f5ede0', padding: isMobile ? '80px 20px 60px' : '100px 40px 80px', borderBottom: '1px solid rgba(139,26,26,0.12)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 60% 50%, rgba(139,26,26,0.05) 0%, transparent 60%)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 860, margin: '0 auto', textAlign: 'center' }}>
           <AnimatedSection direction="up">
@@ -194,9 +201,9 @@ export default function Convocatorias() {
         </div>
       </section>
 
-      {/* FILTROS */}
-      <section style={{ background: '#faf6ee', padding: '0 40px', borderBottom: '1px solid rgba(26,18,8,0.06)' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+{/* FILTROS */}
+      <section style={{ background: '#faf6ee', padding: isMobile ? '0 12px' : '0 40px', borderBottom: '1px solid rgba(26,18,8,0.06)', overflowX: 'auto' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', gap: 4, flexWrap: 'nowrap', alignItems: 'center', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           {FILTROS.map(f => (
             <button key={f} onClick={() => setFiltro(f)} style={{
               fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 2,
@@ -209,8 +216,8 @@ export default function Convocatorias() {
         </div>
       </section>
 
-      {/* CARDS */}
-      <section style={{ background: '#faf6ee', padding: '60px 40px 80px' }}>
+{/* CARDS */}
+      <section style={{ background: '#faf6ee', padding: isMobile ? '32px 16px 60px' : '60px 40px 80px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           {cargando ? (
             <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: 'rgba(26,18,8,0.35)', fontStyle: 'italic', textAlign: 'center', padding: '60px 0' }}>Cargando...</p>
@@ -297,8 +304,8 @@ return (
       </section>
 
       {/* FORMULARIO */}
-      {abiertas.length > 0 && (
-        <section id="formulario-conv" style={{ background: '#f5ede0', padding: '80px 40px 120px', borderTop: '1px solid rgba(26,18,8,0.08)' }}>
+{abiertas.length > 0 && (
+        <section id="formulario-conv" style={{ background: '#f5ede0', padding: isMobile ? '48px 16px 80px' : '80px 40px 120px', borderTop: '1px solid rgba(26,18,8,0.08)' }}>
           <div style={{ maxWidth: 760, margin: '0 auto' }}>
             <AnimatedSection direction="up">
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }}>
@@ -327,7 +334,7 @@ return (
             ) : (
               <AnimatedSection direction="up" delay={0.1}>
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 0, background: '#fff', border: '1px solid rgba(26,18,8,0.08)' }}>
-                  <div style={{ padding: '36px 40px', borderBottom: '1px solid rgba(26,18,8,0.06)' }}>
+              <div style={{ padding: isMobile ? '24px 20px' : '36px 40px', borderBottom: '1px solid rgba(26,18,8,0.06)' }}>
                     <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 3, textTransform: 'uppercase', color: '#8B1A1A', marginBottom: 24, fontWeight: '700' }}>01 — Identificación</p>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20 }}>
                       <div>
@@ -358,7 +365,7 @@ return (
                     </div>
                   </div>
 
-                  <div style={{ padding: '36px 40px', borderBottom: '1px solid rgba(26,18,8,0.06)' }}>
+<div style={{ padding: isMobile ? '24px 20px' : '36px 40px', borderBottom: '1px solid rgba(26,18,8,0.06)' }}>
                     <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 3, textTransform: 'uppercase', color: '#8B1A1A', marginBottom: 24, fontWeight: '700' }}>02 — Convocatoria</p>
                     <label style={labelStyle}>¿A cuál convocatoria envías? <span style={{ color: '#8B1A1A' }}>*</span></label>
                     <select value={formulario.convocatoria_id}
@@ -382,7 +389,7 @@ return (
                     })()}
                   </div>
 
-                  <div style={{ padding: '36px 40px' }}>
+   <div style={{ padding: isMobile ? '24px 20px' : '36px 40px' }}>
                     <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 3, textTransform: 'uppercase', color: '#8B1A1A', marginBottom: 24, fontWeight: '700' }}>03 — Tu texto</p>
                     <label style={labelStyle}>Texto <span style={{ color: '#8B1A1A' }}>*</span></label>
                     <textarea required rows={14} placeholder="Pega o escribe tu texto aquí..." value={formulario.texto}
@@ -397,7 +404,7 @@ return (
                     {errores.texto && <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, color: '#8B1A1A', marginTop: 4 }}>{errores.texto}</p>}
                   </div>
 
-                  <div style={{ padding: '24px 40px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, borderTop: '1px solid rgba(26,18,8,0.06)' }}>
+                  <div style={{ padding: isMobile ? '20px 20px 32px' : '24px 40px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, borderTop: '1px solid rgba(26,18,8,0.06)' }}>
                     <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1, color: 'rgba(26,18,8,0.35)', maxWidth: 320, lineHeight: 1.6 }}>
                       Tu información es confidencial y solo se usará para el proceso de selección.
                     </p>

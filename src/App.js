@@ -9,11 +9,9 @@ import Home from './pages/Home'
 import Manifiesto from './pages/Manifiesto'
 import QuienesSomos from './pages/QuienesSomos'
 import Escritura from './pages/Escritura'
-import Notas from './pages/Notas'
 import Lecturas from './pages/Lecturas'
 import Convocatorias from './pages/Convocatorias'
 import ConvocatoriaDetalle from './pages/ConvocatoriaDetalle'
-import Archivo from './pages/Archivo'
 import Eventos from './pages/Eventos'
 import EventoDetalle from './pages/EventoDetalle'
 import Calendario from './pages/Calendario'
@@ -42,11 +40,9 @@ function AppInner() {
       <Route path="/manifiesto"     element={<Layout><Manifiesto /></Layout>} />
       <Route path="/quienes-somos"  element={<Layout><QuienesSomos /></Layout>} />
       <Route path="/escritura"      element={<Layout><Escritura /></Layout>} />
-      <Route path="/notas"          element={<Layout><Notas /></Layout>} />
       <Route path="/lecturas"       element={<Layout><Lecturas /></Layout>} />
       <Route path="/convocatorias"  element={<Layout><Convocatorias /></Layout>} />
       <Route path="/convocatorias/:id" element={<Layout><ConvocatoriaDetalle /></Layout>} />
-      <Route path="/archivo"        element={<Layout><Archivo /></Layout>} />
       <Route path="/eventos"        element={<Layout><Eventos /></Layout>} />
       <Route path="/eventos/:id"    element={<Layout><EventoDetalle /></Layout>} />
       <Route path="/calendario"     element={<Layout><Calendario /></Layout>} />

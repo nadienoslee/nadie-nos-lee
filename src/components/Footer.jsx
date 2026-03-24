@@ -18,7 +18,7 @@ export default function Footer() {
           {/* LOGO */}
           <div>
             <img src={logoFooter} alt="Nadie Nos Lee"
-              style={{ height: 80, width: 'auto', objectFit: 'contain', marginBottom: 20 }} />
+              style={{ height: 70, width: 'auto', objectFit: 'contain', marginBottom: 20 }} />
             <p style={{
               fontFamily: "'Cormorant Garamond', serif",
               fontSize: 18, color: 'rgba(245,237,224,0.55)',

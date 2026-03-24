@@ -45,7 +45,8 @@ function SecIcon({ icon, size = 16 }) {
     banner:  <svg style={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
     user:    <svg style={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
     check:   <svg style={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>,
-    users:   <svg style={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+users:   <svg style={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+    cal:     <svg style={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/></svg>,
   }
   return icons[icon] || null
 }
@@ -53,6 +54,7 @@ function SecIcon({ icon, size = 16 }) {
 const secciones = [
   { id: 'inicio',        label: 'Inicio',           icon: 'home',    grupo: 'panel' },
   { id: 'estadisticas',  label: 'Estadísticas',      icon: 'stats',   grupo: 'panel' },
+  { id: 'calendario',    label: 'Calendario',        icon: 'cal',     grupo: 'panel' },
   { id: 'escritura',     label: 'Escritura semana',  icon: 'edit',    grupo: 'editorial' },
   { id: 'notas',         label: 'Notas',             icon: 'note',    grupo: 'editorial' },
   { id: 'lecturas',      label: 'Lecturas',          icon: 'book',    grupo: 'editorial' },
@@ -507,6 +509,247 @@ function EscrituraSeccion({ escriturasList, usuario, cargarDatos, registrarAccio
     </div>
   )
 }
+
+function SeccionCalendario() {
+  const hoy = new Date()
+  const [mesActual, setMesActual] = useState(hoy.getMonth())
+  const [anioActual, setAnioActual] = useState(hoy.getFullYear())
+  const [items, setItems] = useState([])
+  const [diaSeleccionado, setDiaSeleccionado] = useState(null)
+  const [cargando, setCargando] = useState(true)
+
+  const TIPO_COLOR = {
+    evento:       '#3AABDC',
+    taller:       '#9B2D8E',
+    noticia:      '#8B1A1A',
+    convocatoria: '#b8943a',
+  }
+
+  useEffect(() => {
+    const cargar = async () => {
+      setCargando(true)
+      const [{ data: ev }, { data: tal }, { data: not }, { data: conv }] = await Promise.all([
+        supabase.from('eventos').select('id, titulo, fecha, color, tipo').eq('publicado', true),
+        supabase.from('talleres').select('id, titulo, fecha_inicio, color').eq('publicado', true),
+        supabase.from('noticias').select('id, titulo, fecha_publicacion, color, categoria').eq('publicado', true),
+        supabase.from('convocatorias').select('id, titulo, fecha_cierre, color').neq('estado', 'Cerrada'),
+      ])
+
+      const todos = [
+        ...(ev   || []).map(e  => ({ id: `ev-${e.id}`,   tipo: 'evento',       label: e.titulo,  fecha: e.fecha,             color: e.color || TIPO_COLOR.evento,       sub: e.tipo || 'Evento' })),
+        ...(tal  || []).map(t  => ({ id: `tal-${t.id}`,  tipo: 'taller',       label: t.titulo,  fecha: t.fecha_inicio,       color: t.color || TIPO_COLOR.taller,       sub: 'Taller' })),
+        ...(not  || []).map(n  => ({ id: `not-${n.id}`,  tipo: 'noticia',      label: n.titulo,  fecha: n.fecha_publicacion,  color: n.color || TIPO_COLOR.noticia,      sub: n.categoria || 'Noticia' })),
+        ...(conv || []).map(c  => ({ id: `cv-${c.id}`,   tipo: 'convocatoria', label: c.titulo,  fecha: c.fecha_cierre,       color: c.color || TIPO_COLOR.convocatoria, sub: 'Convocatoria' })),
+      ].filter(x => x.fecha)
+
+      setItems(todos)
+      setCargando(false)
+    }
+    cargar()
+  }, [])
+
+  // Construir grilla del mes
+  const primerDia = new Date(anioActual, mesActual, 1)
+  const ultimoDia = new Date(anioActual, mesActual + 1, 0)
+  const diasEnMes = ultimoDia.getDate()
+  const offsetInicio = primerDia.getDay() // 0=Dom
+
+  const celdas = []
+  for (let i = 0; i < offsetInicio; i++) celdas.push(null)
+  for (let d = 1; d <= diasEnMes; d++) celdas.push(d)
+
+  const itemsDelDia = (dia) => {
+    if (!dia) return []
+    const fechaStr = `${anioActual}-${String(mesActual + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`
+    return items.filter(it => it.fecha?.startsWith(fechaStr))
+  }
+
+  const itemsDiaSeleccionado = diaSeleccionado ? itemsDelDia(diaSeleccionado) : []
+
+  const mesNombre = new Date(anioActual, mesActual, 1).toLocaleDateString('es-MX', { month: 'long', year: 'numeric' })
+  const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+
+  const TIPO_LABEL = { evento: 'Evento', taller: 'Taller', noticia: 'Noticia', convocatoria: 'Convocatoria' }
+
+  const resumenMes = ['evento', 'taller', 'noticia', 'convocatoria'].map(tipo => ({
+    tipo,
+    count: items.filter(it => {
+      if (!it.fecha) return false
+      const f = new Date(it.fecha)
+      return it.tipo === tipo && f.getMonth() === mesActual && f.getFullYear() === anioActual
+    }).length,
+    color: TIPO_COLOR[tipo],
+    label: TIPO_LABEL[tipo],
+  })).filter(r => r.count > 0)
+
+  return (
+    <div>
+      {/* Encabezado */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 38, fontWeight: 400, color: C.ink, marginBottom: 4 }}>Calendario</h2>
+          <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 2, color: 'rgba(26,18,8,0.45)', textTransform: 'uppercase', fontWeight: '700' }}>
+            Eventos · Talleres · Noticias · Convocatorias
+          </p>
+        </div>
+        {/* Leyenda */}
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+          {Object.entries(TIPO_COLOR).map(([tipo, color]) => (
+            <div key={tipo} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 10, height: 10, borderRadius: 2, background: color, flexShrink: 0 }} />
+              <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(26,18,8,0.5)', fontWeight: '700' }}>
+                {TIPO_LABEL[tipo]}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Resumen del mes */}
+      {resumenMes.length > 0 && (
+        <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+          {resumenMes.map(r => (
+            <div key={r.tipo} style={{ padding: '10px 18px', background: r.color + '10', border: `1px solid ${r.color}30`, borderRadius: 6, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, color: r.color, lineHeight: 1 }}>{r.count}</span>
+              <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: r.color, fontWeight: '700' }}>{r.label}{r.count !== 1 ? 's' : ''}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{ display: 'grid', gridTemplateColumns: diaSeleccionado ? '1fr 320px' : '1fr', gap: 20, alignItems: 'start' }}>
+        {/* Calendario */}
+        <div style={{ background: '#fff', border: '1px solid rgba(26,18,8,0.07)', borderRadius: 10, overflow: 'hidden' }}>
+          {/* Navegación mes */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid rgba(26,18,8,0.07)' }}>
+            <button
+              onClick={() => { if (mesActual === 0) { setMesActual(11); setAnioActual(a => a - 1) } else setMesActual(m => m - 1); setDiaSeleccionado(null) }}
+              style={{ background: 'none', border: '1px solid rgba(26,18,8,0.1)', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', fontFamily: "'Courier Prime', monospace", fontSize: 14, color: 'rgba(26,18,8,0.5)', transition: 'all 0.15s' }}
+              onMouseOver={e => { e.currentTarget.style.background = 'rgba(26,18,8,0.04)'; e.currentTarget.style.color = C.purple }}
+              onMouseOut={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(26,18,8,0.5)' }}
+            >‹</button>
+            <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 400, color: C.ink, textTransform: 'capitalize' }}>{mesNombre}</h3>
+            <button
+              onClick={() => { if (mesActual === 11) { setMesActual(0); setAnioActual(a => a + 1) } else setMesActual(m => m + 1); setDiaSeleccionado(null) }}
+              style={{ background: 'none', border: '1px solid rgba(26,18,8,0.1)', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', fontFamily: "'Courier Prime', monospace", fontSize: 14, color: 'rgba(26,18,8,0.5)', transition: 'all 0.15s' }}
+              onMouseOver={e => { e.currentTarget.style.background = 'rgba(26,18,8,0.04)'; e.currentTarget.style.color = C.purple }}
+              onMouseOut={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(26,18,8,0.5)' }}
+            >›</button>
+          </div>
+
+          {/* Días de la semana */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid rgba(26,18,8,0.06)' }}>
+            {diasSemana.map(d => (
+              <div key={d} style={{ padding: '10px 4px', textAlign: 'center', fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(26,18,8,0.35)', fontWeight: '700' }}>{d}</div>
+            ))}
+          </div>
+
+          {/* Grilla de días */}
+          {cargando ? (
+            <div style={{ padding: '48px', textAlign: 'center' }}>
+              <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: 'rgba(26,18,8,0.35)', fontStyle: 'italic' }}>Cargando...</p>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+              {celdas.map((dia, idx) => {
+                const itemsHoy = dia ? itemsDelDia(dia) : []
+                const esHoy = dia && dia === hoy.getDate() && mesActual === hoy.getMonth() && anioActual === hoy.getFullYear()
+                const seleccionado = dia && dia === diaSeleccionado
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => dia && setDiaSeleccionado(seleccionado ? null : dia)}
+                    style={{
+                      minHeight: 80,
+                      padding: '8px 6px 6px',
+                      borderRight: '1px solid rgba(26,18,8,0.04)',
+                      borderBottom: '1px solid rgba(26,18,8,0.04)',
+                      background: seleccionado ? 'rgba(155,45,142,0.06)' : esHoy ? 'rgba(58,171,220,0.05)' : '#fff',
+                      cursor: dia ? 'pointer' : 'default',
+                      transition: 'background 0.15s',
+                      position: 'relative',
+                    }}
+                    onMouseOver={e => { if (dia && !seleccionado) e.currentTarget.style.background = 'rgba(26,18,8,0.025)' }}
+                    onMouseOut={e => { if (dia && !seleccionado) e.currentTarget.style.background = esHoy ? 'rgba(58,171,220,0.05)' : '#fff' }}
+                  >
+                    {dia && (
+                      <>
+                        <span style={{
+                          fontFamily: "'Courier Prime', monospace",
+                          fontSize: 12,
+                          fontWeight: '700',
+                          color: esHoy ? C.blue : seleccionado ? C.purple : 'rgba(26,18,8,0.65)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: 24,
+                          height: 24,
+                          borderRadius: '50%',
+                          background: esHoy ? `${C.blue}18` : seleccionado ? `${C.purple}18` : 'transparent',
+                          marginBottom: 4,
+                        }}>{dia}</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          {itemsHoy.slice(0, 3).map(it => (
+                            <div key={it.id} style={{
+                              background: it.color + '22',
+                              borderLeft: `2px solid ${it.color}`,
+                              padding: '1px 5px',
+                              borderRadius: '0 2px 2px 0',
+                              overflow: 'hidden',
+                            }}>
+                              <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, color: it.color, fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', letterSpacing: 0.5 }}>
+                                {it.label}
+                              </span>
+                            </div>
+                          ))}
+                          {itemsHoy.length > 3 && (
+                            <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 8, color: 'rgba(26,18,8,0.4)', letterSpacing: 1, paddingLeft: 4 }}>+{itemsHoy.length - 3} más</span>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Panel lateral — día seleccionado */}
+        {diaSeleccionado && (
+          <div style={{ background: '#fff', border: '1px solid rgba(26,18,8,0.07)', borderRadius: 10, overflow: 'hidden', position: 'sticky', top: 20 }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(26,18,8,0.07)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 36, color: C.ink, lineHeight: 1 }}>{diaSeleccionado}</p>
+                <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(26,18,8,0.4)', fontWeight: '700' }}>
+                  {new Date(anioActual, mesActual, diaSeleccionado).toLocaleDateString('es-MX', { weekday: 'long', month: 'long' })}
+                </p>
+              </div>
+              <button onClick={() => setDiaSeleccionado(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(26,18,8,0.35)', fontSize: 18, lineHeight: 1 }}>✕</button>
+            </div>
+
+            <div style={{ padding: '16px', maxHeight: 480, overflowY: 'auto' }}>
+              {itemsDiaSeleccionado.length === 0 ? (
+                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: 'rgba(26,18,8,0.35)', fontStyle: 'italic', textAlign: 'center', padding: '24px 0' }}>Sin actividad este día</p>
+              ) : itemsDiaSeleccionado.map(it => (
+                <div key={it.id} style={{ padding: '14px 16px', marginBottom: 10, background: it.color + '08', border: `1px solid ${it.color}22`, borderLeft: `3px solid ${it.color}`, borderRadius: '0 6px 6px 0' }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+                    <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 8, letterSpacing: 1.5, textTransform: 'uppercase', color: it.color, background: it.color + '18', padding: '2px 8px', borderRadius: 999, fontWeight: '700' }}>{TIPO_LABEL[it.tipo]}</span>
+                    {it.sub && it.sub !== TIPO_LABEL[it.tipo] && (
+                      <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 8, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(26,18,8,0.4)', fontWeight: '600' }}>{it.sub}</span>
+                    )}
+                  </div>
+                  <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: C.ink, fontWeight: 600, lineHeight: 1.3 }}>{it.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function Dashboard() {
   usePageTitle('NADIE NOS LEE | DASHBOARD')
   const [seccionActiva, setSeccionActiva]   = useState('inicio')
@@ -1022,7 +1265,9 @@ const registrarAccion = async (accion, seccion, descripcion, afecta_a = null) =>
         </div>
       )
 
-      case 'estadisticas': return <SeccionEstadisticas />
+case 'estadisticas': return <SeccionEstadisticas />
+
+      case 'calendario': return <SeccionCalendario />
 
 case 'escritura': return (
   <EscrituraSeccion

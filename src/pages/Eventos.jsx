@@ -93,187 +93,89 @@ export default function Eventos() {
                   {(filtro === 'Todos' || filtro === 'Próximos') && <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 4, textTransform: 'uppercase', color: 'rgba(26,18,8,0.4)', marginBottom: 28 }}>Próximos eventos</p>}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24, marginBottom: 64 }}>
                     {proximos.map((ev, i) => (
-                      <AnimatedSection key={ev.id} direction="up" delay={i * 0.08}>
-                        <Link to={`/eventos/${ev.id}`} style={{ textDecoration: 'none', display: 'block' }}>
-                          <div style={{ background: '#fff', border: `2px solid ${ev.color || '#9B2D8E'}22`, overflow: 'hidden', transition: 'transform 0.3s, box-shadow 0.3s, border-color 0.3s' }}
-                            onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = '0 16px 48px rgba(26,18,8,0.1)'; e.currentTarget.style.borderColor = (ev.color || '#9B2D8E') + '66' }}
-                            onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = (ev.color || '#9B2D8E') + '22' }}
-                          >
-<div
-  style={{
-    height: 220,
-    background: ev.imagen_url
-      ? '#efe7dc'
-      : `linear-gradient(135deg, ${ev.color || '#9B2D8E'}25 0%, ${ev.color || '#9B2D8E'}08 100%)`,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-  }}
->
-  {ev.imagen_url && (
-    <>
-      <img
-        src={ev.imagen_url}
-        alt={ev.titulo}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(to top, rgba(26,18,8,0.58) 0%, rgba(26,18,8,0.18) 45%, rgba(26,18,8,0.08) 100%)',
-        }}
-      />
-    </>
-  )}
-
-<div
-  style={{
-    position: 'absolute',
-    top: 16,
-    left: 16,
-    background: ev.color || '#9B2D8E',
-    padding: '10px 18px',
-    textAlign: 'center',
-    minWidth: 72,
-    boxShadow: '0 10px 28px rgba(26,18,8,0.18)',
-  }}
->
-  <div
-    style={{
-      fontFamily: "'Bebas Neue', sans-serif",
-      fontSize: 36,
-      color: getTextColor(ev.color),
-      lineHeight: 1,
-      fontWeight: '900',
-    }}
+                     <AnimatedSection key={ev.id} direction="up" delay={i * 0.08}>
+  <div style={{ background: '#fff', border: `2px solid ${ev.color || '#9B2D8E'}22`, overflow: 'hidden', transition: 'transform 0.3s, box-shadow 0.3s, border-color 0.3s' }}
+    onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = '0 16px 48px rgba(26,18,8,0.1)'; e.currentTarget.style.borderColor = (ev.color || '#9B2D8E') + '66' }}
+    onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = (ev.color || '#9B2D8E') + '22' }}
   >
-    {getFecha(ev)}
+    {/* IMAGEN — link externo si hay link_url, si no va al detalle */}
+    {ev.link_url ? (
+      <a href={ev.link_url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block', cursor: 'pointer' }}>
+        <div
+          style={{
+            height: 220,
+            background: ev.imagen_url
+              ? '#efe7dc'
+              : `linear-gradient(135deg, ${ev.color || '#9B2D8E'}25 0%, ${ev.color || '#9B2D8E'}08 100%)`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          {ev.imagen_url && (
+            <>
+              <img src={ev.imagen_url} alt={ev.titulo} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(26,18,8,0.58) 0%, rgba(26,18,8,0.18) 45%, rgba(26,18,8,0.08) 100%)' }} />
+            </>
+          )}
+          {/* Badge link externo */}
+          <span style={{ position: 'absolute', bottom: 12, right: 12, fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: '#fff', background: 'rgba(26,18,8,0.7)', padding: '4px 10px', backdropFilter: 'blur(4px)', fontWeight: '700', borderRadius: 2 }}>
+            Ver post →
+          </span>
+          <div style={{ position: 'absolute', top: 16, left: 16, background: ev.color || '#9B2D8E', padding: '10px 18px', textAlign: 'center', minWidth: 72, boxShadow: '0 10px 28px rgba(26,18,8,0.18)' }}>
+            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 36, color: getTextColor(ev.color), lineHeight: 1, fontWeight: '900' }}>{getFecha(ev)}</div>
+            <div style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 2, color: getTextColor(ev.color), textTransform: 'uppercase', fontWeight: '900' }}>{getMes(ev)}</div>
+          </div>
+          <span style={{ position: 'absolute', top: 16, right: 16, fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: ev.imagen_url ? '#fff' : ev.color || '#9B2D8E', background: ev.imagen_url ? 'rgba(26,18,8,0.65)' : '#fff', padding: '4px 10px', backdropFilter: ev.imagen_url ? 'blur(4px)' : 'none', fontWeight: '700' }}>{ev.tipo}</span>
+          {!ev.imagen_url && (<span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 140, color: '#ffffff', fontWeight: '900', opacity: 0.07, lineHeight: 1, userSelect: 'none' }}>{ev.tipo?.[0] || 'E'}</span>)}
+        </div>
+      </a>
+    ) : (
+      <Link to={`/eventos/${ev.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+        <div
+          style={{
+            height: 220,
+            background: ev.imagen_url
+              ? '#efe7dc'
+              : `linear-gradient(135deg, ${ev.color || '#9B2D8E'}25 0%, ${ev.color || '#9B2D8E'}08 100%)`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          {ev.imagen_url && (
+            <>
+              <img src={ev.imagen_url} alt={ev.titulo} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(26,18,8,0.58) 0%, rgba(26,18,8,0.18) 45%, rgba(26,18,8,0.08) 100%)' }} />
+            </>
+          )}
+          <div style={{ position: 'absolute', top: 16, left: 16, background: ev.color || '#9B2D8E', padding: '10px 18px', textAlign: 'center', minWidth: 72, boxShadow: '0 10px 28px rgba(26,18,8,0.18)' }}>
+            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 36, color: getTextColor(ev.color), lineHeight: 1, fontWeight: '900' }}>{getFecha(ev)}</div>
+            <div style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 2, color: getTextColor(ev.color), textTransform: 'uppercase', fontWeight: '900' }}>{getMes(ev)}</div>
+          </div>
+          <span style={{ position: 'absolute', top: 16, right: 16, fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: ev.imagen_url ? '#fff' : ev.color || '#9B2D8E', background: ev.imagen_url ? 'rgba(26,18,8,0.65)' : '#fff', padding: '4px 10px', backdropFilter: ev.imagen_url ? 'blur(4px)' : 'none', fontWeight: '700' }}>{ev.tipo}</span>
+          {!ev.imagen_url && (<span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 140, color: '#ffffff', fontWeight: '900', opacity: 0.07, lineHeight: 1, userSelect: 'none' }}>{ev.tipo?.[0] || 'E'}</span>)}
+        </div>
+      </Link>
+    )}
+
+    {/* CONTENIDO — siempre va al detalle del evento */}
+    <Link to={`/eventos/${ev.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+      <div style={{ padding: '28px 28px 32px', background: ev.color || '#9B2D8E' }}>
+        <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: '900', color: getTextColor(ev.color), lineHeight: 1.25, marginBottom: 10 }}>{ev.titulo}</h3>
+        <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, lineHeight: 1.6, color: getTextColor(ev.color), fontWeight: '700', marginBottom: 16 }}>{ev.descripcion}</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+          <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 12, color: getTextColor(ev.color), letterSpacing: 1, fontWeight: '900' }}>{ev.lugar}</p>
+          <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: getTextColor(ev.color), borderBottom: `1px solid ${getTextColor(ev.color)}`, fontWeight: '900' }}>Ver evento →</span>
+        </div>
+      </div>
+    </Link>
   </div>
-
-  <div
-    style={{
-      fontFamily: "'Courier Prime', monospace",
-      fontSize: 10,
-      letterSpacing: 2,
-      color: getTextColor(ev.color),
-      textTransform: 'uppercase',
-      fontWeight: '900',
-    }}
-  >
-    {getMes(ev)}
-  </div>
-</div>
-
-  <span
-    style={{
-      position: 'absolute',
-      top: 16,
-      right: 16,
-      fontFamily: "'Courier Prime', monospace",
-      fontSize: 9,
-      letterSpacing: 2,
-      textTransform: 'uppercase',
-      color: ev.imagen_url ? '#fff' : ev.color || '#9B2D8E',
-      background: ev.imagen_url ? 'rgba(26,18,8,0.65)' : '#fff',
-      padding: '4px 10px',
-      backdropFilter: ev.imagen_url ? 'blur(4px)' : 'none',
-      fontWeight: '700',
-    }}
-  >
-    {ev.tipo}
-  </span>
-
-  {!ev.imagen_url && (
-    <span
-      style={{
-        fontFamily: "'Bebas Neue', sans-serif",
-        fontSize: 140,
-        color: '#ffffff',
-        fontWeight: '900',
-        opacity: 0.07,
-        lineHeight: 1,
-        userSelect: 'none',
-      }}
-    >
-      {ev.tipo?.[0] || 'E'}
-    </span>
-  )}
-</div>
-<div style={{ padding: '28px 28px 32px', background: ev.color || '#9B2D8E' }}>
-  <h3
-    style={{
-      fontFamily: "'Cormorant Garamond', serif",
-      fontSize: 24,
-      fontWeight: '900',
-      color: getTextColor(ev.color),
-      lineHeight: 1.25,
-      marginBottom: 10,
-    }}
-  >
-    {ev.titulo}
-  </h3>
-
-  <p
-    style={{
-      fontFamily: "'Cormorant Garamond', serif",
-      fontSize: 18,
-      lineHeight: 1.6,
-      color: getTextColor(ev.color),
-      fontWeight: '700',
-      marginBottom: 16,
-    }}
-  >
-    {ev.descripcion}
-  </p>
-
-  <div
-    style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      flexWrap: 'wrap',
-      gap: 8,
-    }}
-  >
-    <p
-      style={{
-        fontFamily: "'Courier Prime', monospace",
-        fontSize: 12,
-        color: getTextColor(ev.color),
-        letterSpacing: 1,
-        fontWeight: '900',
-      }}
-    >
-      {ev.lugar}
-    </p>
-
-    <span
-      style={{
-        fontFamily: "'Courier Prime', monospace",
-        fontSize: 11,
-        letterSpacing: 2,
-        textTransform: 'uppercase',
-        color: getTextColor(ev.color),
-        borderBottom: `1px solid ${getTextColor(ev.color)}`,
-        fontWeight: '900',
-      }}
-    >
-      Ver evento →
-    </span>
-  </div>
-</div>
-                          </div>
-                        </Link>
-                      </AnimatedSection>
+</AnimatedSection>
                     ))}
                   </div>
                 </>
@@ -284,150 +186,72 @@ export default function Eventos() {
                   <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 4, textTransform: 'uppercase', color: 'rgba(26,18,8,0.3)', marginBottom: 28, borderTop: proximos.length > 0 ? '1px solid rgba(26,18,8,0.07)' : 'none', paddingTop: proximos.length > 0 ? 48 : 0 }}>Eventos pasados</p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24 }}>
                     {pasados.map((ev, i) => (
-                      <AnimatedSection key={ev.id} direction="up" delay={i * 0.08}>
-                        <Link to={`/eventos/${ev.id}`} style={{ textDecoration: 'none', display: 'block' }}>
-                          <div style={{ background: '#fff', border: '1px solid rgba(26,18,8,0.07)', overflow: 'hidden', opacity: 0.7, transition: 'opacity 0.3s' }}
-                            onMouseOver={e => e.currentTarget.style.opacity = '0.95'}
-                            onMouseOut={e => e.currentTarget.style.opacity = '0.7'}
-                          >
-<div
-  style={{
-    height: 170,
-    background: ev.imagen_url
-      ? '#efe7dc'
-      : `linear-gradient(135deg, ${ev.color || '#9B2D8E'}15 0%, ${ev.color || '#9B2D8E'}05 100%)`,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-  }}
->
-  {ev.imagen_url && (
-    <>
-      <img
-        src={ev.imagen_url}
-        alt={ev.titulo}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          filter: 'grayscale(18%)',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(to top, rgba(250,246,238,0.48) 0%, rgba(250,246,238,0.14) 100%)',
-        }}
-      />
-    </>
-  )}
-
-  <div
-    style={{
-      position: 'absolute',
-      top: 16,
-      left: 16,
-      background: ev.color || '#9B2D8E',
-      padding: '6px 14px',
-      textAlign: 'center',
-      minWidth: 64,
-      boxShadow: '0 8px 24px rgba(26,18,8,0.08)',
-      border: `1px solid ${(ev.color || '#9B2D8E')}22`,
-    }}
+<AnimatedSection key={ev.id} direction="up" delay={i * 0.08}>
+  <div style={{ background: '#fff', border: '1px solid rgba(26,18,8,0.07)', overflow: 'hidden', opacity: 0.7, transition: 'opacity 0.3s' }}
+    onMouseOver={e => e.currentTarget.style.opacity = '0.95'}
+    onMouseOut={e => e.currentTarget.style.opacity = '0.7'}
   >
-    <div
-      style={{
-        fontFamily: "'Bebas Neue', sans-serif",
-        fontSize: 30,
-        color: getTextColor(ev.color),
-        lineHeight: 1,
-        fontWeight: '900',
-      }}
-    >
-      {getFecha(ev)}
-    </div>
-    <div
-      style={{
-        fontFamily: "'Courier Prime', monospace",
-        fontSize: 9,
-        letterSpacing: 2,
-        color: getTextColor(ev.color),
-        textTransform: 'uppercase',
-        fontWeight: '900',
-      }}
-    >
-      {getMes(ev)}
-    </div>
+    {/* IMAGEN — link externo si hay link_url, si no va al detalle */}
+    {ev.link_url ? (
+      <a href={ev.link_url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block', cursor: 'pointer' }}>
+        <div
+          style={{
+            height: 170,
+            background: ev.imagen_url ? '#efe7dc' : `linear-gradient(135deg, ${ev.color || '#9B2D8E'}15 0%, ${ev.color || '#9B2D8E'}05 100%)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            position: 'relative', overflow: 'hidden',
+          }}
+        >
+          {ev.imagen_url && (
+            <>
+              <img src={ev.imagen_url} alt={ev.titulo} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'grayscale(18%)' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(250,246,238,0.48) 0%, rgba(250,246,238,0.14) 100%)' }} />
+            </>
+          )}
+          <span style={{ position: 'absolute', bottom: 12, right: 12, fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: '#fff', background: 'rgba(26,18,8,0.7)', padding: '4px 10px', backdropFilter: 'blur(4px)', fontWeight: '700', borderRadius: 2 }}>Ver post →</span>
+          <div style={{ position: 'absolute', top: 16, left: 16, background: ev.color || '#9B2D8E', padding: '6px 14px', textAlign: 'center', minWidth: 64, boxShadow: '0 8px 24px rgba(26,18,8,0.08)', border: `1px solid ${(ev.color || '#9B2D8E')}22` }}>
+            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 30, color: getTextColor(ev.color), lineHeight: 1, fontWeight: '900' }}>{getFecha(ev)}</div>
+            <div style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 2, color: getTextColor(ev.color), textTransform: 'uppercase', fontWeight: '900' }}>{getMes(ev)}</div>
+          </div>
+          <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: ev.imagen_url ? '#fff' : 'rgba(26,18,8,0.3)', position: 'absolute', top: 16, right: 16, border: ev.imagen_url ? 'none' : '1px solid rgba(26,18,8,0.15)', background: ev.imagen_url ? 'rgba(26,18,8,0.55)' : 'transparent', padding: '3px 8px', backdropFilter: ev.imagen_url ? 'blur(4px)' : 'none', fontWeight: '700' }}>Pasado</span>
+          {!ev.imagen_url && (<span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 100, color: '#ffffff', fontWeight: '900', opacity: 0.06, lineHeight: 1 }}>{ev.tipo?.[0] || 'E'}</span>)}
+        </div>
+      </a>
+    ) : (
+      <Link to={`/eventos/${ev.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+        <div
+          style={{
+            height: 170,
+            background: ev.imagen_url ? '#efe7dc' : `linear-gradient(135deg, ${ev.color || '#9B2D8E'}15 0%, ${ev.color || '#9B2D8E'}05 100%)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            position: 'relative', overflow: 'hidden',
+          }}
+        >
+          {ev.imagen_url && (
+            <>
+              <img src={ev.imagen_url} alt={ev.titulo} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'grayscale(18%)' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(250,246,238,0.48) 0%, rgba(250,246,238,0.14) 100%)' }} />
+            </>
+          )}
+          <div style={{ position: 'absolute', top: 16, left: 16, background: ev.color || '#9B2D8E', padding: '6px 14px', textAlign: 'center', minWidth: 64, boxShadow: '0 8px 24px rgba(26,18,8,0.08)', border: `1px solid ${(ev.color || '#9B2D8E')}22` }}>
+            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 30, color: getTextColor(ev.color), lineHeight: 1, fontWeight: '900' }}>{getFecha(ev)}</div>
+            <div style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 2, color: getTextColor(ev.color), textTransform: 'uppercase', fontWeight: '900' }}>{getMes(ev)}</div>
+          </div>
+          <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: ev.imagen_url ? '#fff' : 'rgba(26,18,8,0.3)', position: 'absolute', top: 16, right: 16, border: ev.imagen_url ? 'none' : '1px solid rgba(26,18,8,0.15)', background: ev.imagen_url ? 'rgba(26,18,8,0.55)' : 'transparent', padding: '3px 8px', backdropFilter: ev.imagen_url ? 'blur(4px)' : 'none', fontWeight: '700' }}>Pasado</span>
+          {!ev.imagen_url && (<span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 100, color: '#ffffff', fontWeight: '900', opacity: 0.06, lineHeight: 1 }}>{ev.tipo?.[0] || 'E'}</span>)}
+        </div>
+      </Link>
+    )}
+
+    {/* CONTENIDO — siempre va al detalle del evento */}
+    <Link to={`/eventos/${ev.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+      <div style={{ padding: '22px 24px 26px', background: ev.color || '#9B2D8E' }}>
+        <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: '900', color: getTextColor(ev.color), lineHeight: 1.25, marginBottom: 8 }}>{ev.titulo}</h3>
+        <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, color: getTextColor(ev.color), letterSpacing: 1, fontWeight: '900' }}>{ev.lugar}</p>
+      </div>
+    </Link>
   </div>
-  <span
-    style={{
-      fontFamily: "'Courier Prime', monospace",
-      fontSize: 9,
-      letterSpacing: 2,
-      textTransform: 'uppercase',
-      color: ev.imagen_url ? '#fff' : 'rgba(26,18,8,0.3)',
-      position: 'absolute',
-      top: 16,
-      right: 16,
-      border: ev.imagen_url ? 'none' : '1px solid rgba(26,18,8,0.15)',
-      background: ev.imagen_url ? 'rgba(26,18,8,0.55)' : 'transparent',
-      padding: '3px 8px',
-      backdropFilter: ev.imagen_url ? 'blur(4px)' : 'none',
-      fontWeight: '700',
-    }}
-  >
-    Pasado
-  </span>
-
-  {!ev.imagen_url && (
-    <span
-      style={{
-        fontFamily: "'Bebas Neue', sans-serif",
-        fontSize: 100,
-        color: '#ffffff',
-        fontWeight: '900',
-        opacity: 0.06,
-        lineHeight: 1,
-      }}
-    >
-      {ev.tipo?.[0] || 'E'}
-    </span>
-  )}
-</div>
-                            <div style={{ padding: '22px 24px 26px', background: ev.color || '#9B2D8E' }}>
-                              <h3
-                                style={{
-                                  fontFamily: "'Cormorant Garamond', serif",
-                                  fontSize: 22,
-                                  fontWeight: '900',
-                                  color: getTextColor(ev.color),
-                                  lineHeight: 1.25,
-                                  marginBottom: 8,
-                                }}
-                              >
-                                {ev.titulo}
-                              </h3>
-
-                              <p
-                                style={{
-                                  fontFamily: "'Courier Prime', monospace",
-                                  fontSize: 11,
-                                  color: getTextColor(ev.color),
-                                  letterSpacing: 1,
-                                  fontWeight: '900',
-                                }}
-                              >
-                                {ev.lugar}
-                              </p>
-                            </div>
-                          </div>
-                        </Link>
-                      </AnimatedSection>
+</AnimatedSection>
                     ))}
                   </div>
                 </>

@@ -72,18 +72,46 @@ export default function EventoDetalle() {
           <AnimatedSection direction="right">
             {/* Imagen o placeholder */}
 {ev.imagen_url ? (
-  <img
-    src={ev.imagen_url}
-    alt={ev.titulo}
-    style={{
-      width: '100%',
-      aspectRatio: '16/9',
-      objectFit: 'cover',
-      border: `2px solid ${color}22`,
-      marginBottom: 32,
-      boxShadow: '0 18px 40px rgba(26,18,8,0.08)',
-    }}
-  />
+  ev.link_url ? (
+    <a href={ev.link_url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', position: 'relative', marginBottom: 32 }}>
+      <img
+        src={ev.imagen_url}
+        alt={ev.titulo}
+        style={{
+          width: '100%',
+          aspectRatio: '16/9',
+          objectFit: 'cover',
+          border: `2px solid ${color}22`,
+          boxShadow: '0 18px 40px rgba(26,18,8,0.08)',
+          display: 'block',
+          transition: 'opacity 0.2s',
+        }}
+        onMouseOver={e => e.currentTarget.style.opacity = '0.88'}
+        onMouseOut={e => e.currentTarget.style.opacity = '1'}
+      />
+      <span style={{
+        position: 'absolute', bottom: 12, right: 12,
+        fontFamily: "'Courier Prime', monospace",
+        fontSize: 9, letterSpacing: 1, textTransform: 'uppercase',
+        color: '#fff', background: 'rgba(26,18,8,0.7)',
+        padding: '4px 10px', backdropFilter: 'blur(4px)',
+        fontWeight: '700', borderRadius: 2,
+      }}>Ver post →</span>
+    </a>
+  ) : (
+    <img
+      src={ev.imagen_url}
+      alt={ev.titulo}
+      style={{
+        width: '100%',
+        aspectRatio: '16/9',
+        objectFit: 'cover',
+        border: `2px solid ${color}22`,
+        marginBottom: 32,
+        boxShadow: '0 18px 40px rgba(26,18,8,0.08)',
+      }}
+    />
+  )
 ) : (
   <div
     style={{

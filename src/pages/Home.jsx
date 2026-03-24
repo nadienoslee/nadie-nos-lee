@@ -88,6 +88,7 @@ export default function Home() {
 const [escritura, setEscritura]             = useState(null)
 const [banners, setBanners]                 = useState([])
 const [eventos, setEventos]                 = useState([])
+const [noticiasSemana, setNoticiasSemana]   = useState([])
 const [paginaEscritura, setPaginaEscritura] = useState(0)
 
   // Frase aleatoria
@@ -101,7 +102,7 @@ const [paginaEscritura, setPaginaEscritura] = useState(0)
   }, [])
 
   // Cargar datos Supabase
-  useEffect(() => {
+useEffect(() => {
     const cargar = async () => {
       const { data: e } = await supabase.from('escrituras').select('*').eq('publicado', true).order('created_at', { ascending: false }).limit(1)
       if (e?.[0]) setEscritura(e[0])
@@ -111,35 +112,51 @@ const [paginaEscritura, setPaginaEscritura] = useState(0)
 
       const { data: ev } = await supabase.from('eventos').select('*').eq('publicado', true).eq('estado', 'Próximo').order('fecha', { ascending: true }).limit(3)
       if (ev?.length) setEventos(ev)
+
+      // Noticias publicadas en los últimos 7 días
+      const hace7dias = new Date()
+      hace7dias.setDate(hace7dias.getDate() - 7)
+      const { data: ns } = await supabase
+        .from('noticias')
+        .select('*')
+        .eq('publicado', true)
+        .gte('fecha_publicacion', hace7dias.toISOString().split('T')[0])
+        .order('fecha_publicacion', { ascending: false })
+        .limit(5)
+      if (ns?.length) setNoticiasSemana(ns)
     }
     cargar()
 
     const ch1 = supabase.channel('home-e').on('postgres_changes', { event: '*', schema: 'public', table: 'escrituras' }, cargar).subscribe()
     const ch2 = supabase.channel('home-b').on('postgres_changes', { event: '*', schema: 'public', table: 'banners' }, cargar).subscribe()
     const ch3 = supabase.channel('home-ev').on('postgres_changes', { event: '*', schema: 'public', table: 'eventos' }, cargar).subscribe()
-    return () => { supabase.removeChannel(ch1); supabase.removeChannel(ch2); supabase.removeChannel(ch3) }
+    const ch4 = supabase.channel('home-ns').on('postgres_changes', { event: '*', schema: 'public', table: 'noticias' }, cargar).subscribe()
+    return () => { supabase.removeChannel(ch1); supabase.removeChannel(ch2); supabase.removeChannel(ch3); supabase.removeChannel(ch4) }
   }, [])
 
-  // Datos activos con fallback
-  const escrituraActiva = escritura || ESCRITURA_FB
-  const bannersActivos  = banners.length  ? banners  : BANNERS_FB
-  const eventosActivos  = eventos.length  ? eventos  : EVENTOS_FB
+// Datos activos con fallback
+  const escrituraActiva    = escritura || ESCRITURA_FB
+  const bannersActivos     = banners.length  ? banners  : BANNERS_FB
+  const eventosActivos     = eventos.length  ? eventos  : EVENTOS_FB
+  // Carrusel: noticias de esta semana si hay, si no banners
+  const carruselItems      = noticiasSemana.length ? noticiasSemana : bannersActivos
+  const esCarruselNoticia  = noticiasSemana.length > 0
 
   // Carrusel automático — usa bannersActivos.length directamente
-  useEffect(() => {
+useEffect(() => {
     clearInterval(intervalRef.current)
-    if (!pausado && bannersActivos.length > 1) {
+    if (!pausado && carruselItems.length > 1) {
       intervalRef.current = setInterval(() => {
-        setSlide(s => (s + 1) % bannersActivos.length)
+        setSlide(s => (s + 1) % carruselItems.length)
       }, 5000)
     }
     return () => clearInterval(intervalRef.current)
-  }, [pausado, bannersActivos.length])
+  }, [pausado, carruselItems.length])
 
-  // Resetear slide si cambia el total de banners
+  // Resetear slide si cambia el total de items
   useEffect(() => {
     setSlide(0)
-  }, [bannersActivos.length])
+  }, [carruselItems.length])
 
   const prevSlide = () => { setSlide(s => (s - 1 + bannersActivos.length) % bannersActivos.length) }
   const nextSlide = () => { setSlide(s => (s + 1) % bannersActivos.length) }
@@ -544,29 +561,71 @@ const paginaActualIdx = Math.min(paginaEscritura, totalPagsTexto - 1)
           >
             {/* Track con transición CSS */}
             <div style={{ display: 'flex', transform: `translateX(-${slide * 100}%)`, transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }}>
-              {bannersActivos.map((b, i) => {
-                const href      = b.link_url || b.link || '/noticias'
-                const esExterno = b.link_tipo === 'externo'
-                const grad      = b.gradiente || `linear-gradient(135deg, ${b.color || '#9B2D8E'} 0%, ${(b.color || '#9B2D8E')}aa 100%)`
-                return (
-                  <Link key={b.id || i} to={esExterno ? '#' : href}
-                    onClick={esExterno ? e => { e.preventDefault(); window.open(href, '_blank') } : undefined}
-                    style={{ minWidth: '100%', textDecoration: 'none', display: 'block' }}
-                  >
-<div style={{ height: 'clamp(240px, 40vw, 400px)', background: grad, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '48px 60px', position: 'relative', overflow: 'hidden', cursor: 'pointer' }}>
-  {b.imagen_url && <img src={b.imagen_url} alt={b.titulo} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.25 }} />}
-  <div style={{ position: 'absolute', right: -20, top: '50%', transform: 'translateY(-50%)', fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(80px, 20vw, 220px)', color: 'rgba(255,255,255,0.06)', lineHeight: 1, userSelect: 'none', letterSpacing: 4, whiteSpace: 'nowrap' }}>NADIE NOS LEE</div>
-                      <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', marginBottom: 16 }}>Nadie Nos Lee — Colectivo</p>
-                      <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(40px, 7vw, 80px)', letterSpacing: 4, color: '#fff', lineHeight: 0.95, marginBottom: 20 }}>{b.titulo}</h3>
-                      <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontStyle: 'italic', color: 'rgba(255,255,255,0.75)', maxWidth: 560 }}>{b.subtitulo}</p>
-                    </div>
-                  </Link>
-                )
+{carruselItems.map((item, i) => {
+                if (esCarruselNoticia) {
+                  const n = item
+                  const color = n.color || '#8B1A1A'
+                  const href = n.link_url || '/noticias'
+                  const esExterno = !!n.link_url
+                  return (
+                    <a key={n.id || i}
+                      href={href}
+                      target={esExterno ? '_blank' : '_self'}
+                      rel={esExterno ? 'noopener noreferrer' : undefined}
+                      style={{ minWidth: '100%', textDecoration: 'none', display: 'block' }}
+                    >
+                      <div style={{ height: 'clamp(240px, 40vw, 400px)', background: `linear-gradient(135deg, ${color} 0%, ${color}99 100%)`, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '48px 60px', position: 'relative', overflow: 'hidden', cursor: 'pointer' }}>
+                        {n.imagen_url && (
+                          <>
+                            <img src={n.imagen_url} alt={n.titulo} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.35 }} />
+                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(26,18,8,0.88) 0%, rgba(26,18,8,0.4) 55%, rgba(26,18,8,0.1) 100%)' }} />
+                          </>
+                        )}
+                        <div style={{ position: 'absolute', right: -20, top: '50%', transform: 'translateY(-50%)', fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(80px, 20vw, 220px)', color: 'rgba(255,255,255,0.04)', lineHeight: 1, userSelect: 'none', letterSpacing: 4, whiteSpace: 'nowrap' }}>NADIE NOS LEE</div>
+                        <div style={{ position: 'relative', zIndex: 1 }}>
+                          <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
+                            <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: '#fff', background: 'rgba(255,255,255,0.18)', padding: '4px 12px', backdropFilter: 'blur(4px)' }}>{n.categoria || 'Noticia'}</span>
+                            {n.fecha_publicacion && (
+                              <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 1, color: 'rgba(255,255,255,0.55)' }}>
+                                {new Date(n.fecha_publicacion).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </span>
+                            )}
+                          </div>
+                          <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(32px, 5vw, 68px)', letterSpacing: 3, color: '#fff', lineHeight: 1, marginBottom: 16 }}>{n.titulo}</h3>
+                          {n.cuerpo && (
+                            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 19, fontStyle: 'italic', color: 'rgba(255,255,255,0.78)', maxWidth: 580, lineHeight: 1.6 }}>
+                              {n.cuerpo.length > 140 ? n.cuerpo.slice(0, 140) + '...' : n.cuerpo}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </a>
+                  )
+                } else {
+                  const b = item
+                  const href      = b.link_url || b.link || '/noticias'
+                  const esExterno = b.link_tipo === 'externo'
+                  const grad      = b.gradiente || `linear-gradient(135deg, ${b.color || '#9B2D8E'} 0%, ${(b.color || '#9B2D8E')}aa 100%)`
+                  return (
+                    <Link key={b.id || i} to={esExterno ? '#' : href}
+                      onClick={esExterno ? e => { e.preventDefault(); window.open(href, '_blank') } : undefined}
+                      style={{ minWidth: '100%', textDecoration: 'none', display: 'block' }}
+                    >
+                      <div style={{ height: 'clamp(240px, 40vw, 400px)', background: grad, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '48px 60px', position: 'relative', overflow: 'hidden', cursor: 'pointer' }}>
+                        {b.imagen_url && <img src={b.imagen_url} alt={b.titulo} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.25 }} />}
+                        <div style={{ position: 'absolute', right: -20, top: '50%', transform: 'translateY(-50%)', fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(80px, 20vw, 220px)', color: 'rgba(255,255,255,0.06)', lineHeight: 1, userSelect: 'none', letterSpacing: 4, whiteSpace: 'nowrap' }}>NADIE NOS LEE</div>
+                        <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', marginBottom: 16 }}>Nadie Nos Lee — Colectivo</p>
+                        <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(40px, 7vw, 80px)', letterSpacing: 4, color: '#fff', lineHeight: 0.95, marginBottom: 20 }}>{b.titulo}</h3>
+                        <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontStyle: 'italic', color: 'rgba(255,255,255,0.75)', maxWidth: 560 }}>{b.subtitulo}</p>
+                      </div>
+                    </Link>
+                  )
+                }
               })}
             </div>
 
             {/* Flechas — solo si hay más de 1 */}
-            {bannersActivos.length > 1 && (
+            {carruselItems.length > 1 && (
               <>
                 <button onClick={prevSlide} style={{ position: 'absolute', left: 20, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', width: 48, height: 48, cursor: 'pointer', fontSize: 20, backdropFilter: 'blur(4px)', transition: 'background 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
@@ -579,7 +638,7 @@ const paginaActualIdx = Math.min(paginaEscritura, totalPagsTexto - 1)
 
                 {/* Dots */}
                 <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 24 }}>
-                  {bannersActivos.map((_, i) => (
+                  {carruselItems.map((_, i) => (
                     <button key={i} onClick={() => setSlide(i)} style={{ width: i === slide ? 28 : 10, height: 10, borderRadius: 5, background: i === slide ? '#9B2D8E' : 'rgba(245,237,224,0.25)', border: 'none', cursor: 'pointer', transition: 'width 0.3s ease, background 0.3s ease', padding: 0 }} />
                   ))}
                 </div>

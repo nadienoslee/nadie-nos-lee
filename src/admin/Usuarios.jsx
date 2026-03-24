@@ -168,13 +168,32 @@ const crearUsuario = async () => {
     if (!error) { cargarUsuarios(); mostrarFeedback(`${usuario.nombre} ${usuario.activo ? 'desactivado' : 'activado'}`) }
   }
 
-  const resetearPass = async (usuario) => {
+const resetearPass = async (usuario) => {
+    if (!usuario.user_id) {
+      mostrarFeedback('Este usuario no tiene acceso Auth vinculado', 'error')
+      return
+    }
     const nuevaPass = generarPassword()
-    const { error } = await supabase
+
+    // Actualizar en Auth
+    const { data, error: authError } = await supabase.functions.invoke('admin-users', {
+      body: { action: 'resetPass', userId: usuario.user_id, newPassword: nuevaPass },
+    })
+    if (authError || data?.error) {
+      mostrarFeedback(`Error al resetear: ${data?.error || authError.message}`, 'error')
+      return
+    }
+
+    // Marcar cambio pendiente en perfil
+    const { error: perfilError } = await supabase
       .from('perfiles')
       .update({ debe_cambiar_pass: true, pass_temporal: nuevaPass })
       .eq('id', usuario.id)
-    if (!error) { cargarUsuarios(); mostrarFeedback(`Contraseña restablecida para ${usuario.nombre}: ${nuevaPass}`) }
+
+    if (!perfilError) {
+      cargarUsuarios()
+      mostrarFeedback(`Contraseña restablecida para ${usuario.nombre}: ${nuevaPass}`)
+    }
   }
 
   const hacerAdmin = async (usuario) => {

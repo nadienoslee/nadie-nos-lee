@@ -694,6 +694,9 @@ const cargarNotificaciones = async () => {
 
   if (error) return
 
+  // Recuperar IDs ya leídos del localStorage
+  const leidas = JSON.parse(localStorage.getItem('notif_leidas') || '[]')
+
   if (data) {
     setNotificaciones(
       data.map((n) => {
@@ -707,7 +710,7 @@ const cargarNotificaciones = async () => {
           texto: n.descripcion,
           seccion: n.seccion,
           afecta_a: n.afecta_a,
-          leida: false,
+          leida: leidas.includes(n.id),
           email: perfil?.email || n.usuario_email,
           nombre: getDisplayName({
             nombre: perfil?.nombre,
@@ -770,19 +773,25 @@ const cargarNotificaciones = async () => {
   }
 
   const cerrarSesion = async () => { await supabase.auth.signOut(); navigate('/admin/login') }
-  const marcarTodasLeidas = () => setNotificaciones(prev => prev.map(n => ({ ...n, leida: true })))
-
+const marcarTodasLeidas = () => {
+  setNotificaciones(prev => {
+    const actualizadas = prev.map(n => ({ ...n, leida: true }))
+    const ids = actualizadas.map(n => n.id)
+    localStorage.setItem('notif_leidas', JSON.stringify(ids))
+    return actualizadas
+  })
+}
 const registrarAccion = async (accion, seccion, descripcion, afecta_a = null) => {
   const { data: perfilActual } = await supabase
     .from('perfiles')
-    .select('user_id, nombre, username, email, foto_url')
+    .select('id, user_id, nombre, username, email, foto_url')
     .eq('user_id', usuario?.id)
     .single()
 
   await supabase.from('actividad_log').insert({
     usuario_email: usuario?.email,
     usuario_id: usuario?.id,
-    perfil_id: perfilActual?.user_id || usuario?.id,
+    perfil_id: perfilActual?.id || null,
     accion,
     seccion,
     descripcion,

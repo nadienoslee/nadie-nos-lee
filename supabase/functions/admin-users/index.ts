@@ -64,6 +64,17 @@ serve(async (req) => {
       })
     }
 
+   if (action === 'resetPass') {
+      const { userId, newPassword } = payload
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+        password: newPassword,
+      })
+      if (error) throw error
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     throw new Error('Acción inválida')
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {

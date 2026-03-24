@@ -6,14 +6,12 @@ import logoMobile from '../assets/ICONSPAREJA.png'
 const links = [
   { label: 'Manifiesto', to: '/manifiesto' },
   { label: 'Quiénes somos', to: '/quienes-somos' },
-  {
+{
     label: 'Editorial', to: '/escritura',
     sub: [
       { label: 'Escritura de la semana', to: '/escritura' },
-      { label: 'Notas', to: '/notas' },
       { label: 'Lecturas recomendadas', to: '/lecturas' },
       { label: 'Convocatorias', to: '/convocatorias' },
-      { label: 'Archivo', to: '/archivo' },
     ]
   },
   {

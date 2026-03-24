@@ -7,7 +7,7 @@ export default function Manifiesto() {
   usePageTitle('NADIE NOS LEE | MANIFIESTO')
 
   return (
-    <main style={{ paddingTop: 84 }}>
+    <main>
 
       <section style={{
         background: '#f5ede0',

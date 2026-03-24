@@ -33,7 +33,7 @@ export default function Escritura() {
   )
 
   return (
-    <main style={{ paddingTop: 84 }}>
+    <main>
       <section style={{ background: '#f5ede0', padding: '100px 40px 80px', borderBottom: '1px solid rgba(139,26,26,0.15)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 30% 80%, rgba(139,26,26,0.07) 0%, transparent 60%)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 860, margin: '0 auto', textAlign: 'center' }}>

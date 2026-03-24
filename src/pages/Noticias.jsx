@@ -24,6 +24,13 @@ export default function Noticias() {
     return () => supabase.removeChannel(ch)
   }, [])
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
   const filtradas = noticias.filter(n => {
     if (filtro === 'Todos') return true
     const fecha = n.fecha_publicacion ? new Date(n.fecha_publicacion) : null
@@ -45,7 +52,7 @@ export default function Noticias() {
   })
 
   return (
-    <main style={{ paddingTop: 84 }}>
+    <main>
       <section style={{ background: '#f5ede0', padding: '100px 40px 80px', borderBottom: '1px solid rgba(139,26,26,0.15)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 70% 60%, rgba(139,26,26,0.07) 0%, transparent 60%)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 860, margin: '0 auto', textAlign: 'center' }}>
@@ -58,8 +65,8 @@ export default function Noticias() {
       </section>
 
       {/* FILTROS */}
-      <section style={{ background: '#faf6ee', padding: '0 40px', borderBottom: '1px solid rgba(26,18,8,0.06)' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+<section style={{ background: '#faf6ee', padding: isMobile ? '0 12px' : '0 40px', borderBottom: '1px solid rgba(26,18,8,0.06)', overflowX: 'auto' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', gap: 4, flexWrap: 'nowrap', alignItems: 'center', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           {filtrosFecha.map(f => (
             <button key={f} onClick={() => setFiltro(f)} style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', background: 'none', border: 'none', color: filtro === f ? '#1a1208' : 'rgba(26,18,8,0.35)', borderBottom: filtro === f ? '3px solid #8B1A1A' : '3px solid transparent', padding: '18px 16px', cursor: 'pointer', transition: 'color 0.2s' }}>{f}</button>
           ))}
@@ -69,7 +76,7 @@ export default function Noticias() {
         </div>
       </section>
 
-      <section style={{ background: '#faf6ee', padding: '80px 40px 120px' }}>
+<section style={{ background: '#faf6ee', padding: isMobile ? '32px 16px 80px' : '80px 40px 120px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           {cargando ? (
             <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: 'rgba(26,18,8,0.35)', fontStyle: 'italic', textAlign: 'center', padding: '60px 0' }}>Cargando...</p>
@@ -85,11 +92,32 @@ export default function Noticias() {
               )}
             </div>
           ) : filtradas.map((n, i) => (
-            <AnimatedSection key={n.id} direction="right" delay={i * 0.08}>
-              <div style={{ display: 'grid', gridTemplateColumns: n.imagen_url ? '1fr 1fr' : '1fr', gap: 48, alignItems: 'start', padding: '56px 0', borderBottom: '1px solid rgba(26,18,8,0.07)' }}>
+<AnimatedSection key={n.id} direction="right" delay={i * 0.08}>
+              <div style={{
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                gap: isMobile ? 24 : 48,
+                alignItems: 'start',
+                padding: isMobile ? '36px 0' : '56px 0',
+                borderBottom: '1px solid rgba(26,18,8,0.07)'
+              }}>
+
+                {/* Imagen arriba en mobile */}
+                {n.imagen_url && isMobile && (
+                  <div style={{ width: '100%' }}>
+                    {n.link_url ? (
+                      <a href={n.link_url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', position: 'relative', textDecoration: 'none' }}>
+                        <img src={n.imagen_url} alt={n.titulo} style={{ width: '100%', height: 'auto', display: 'block', border: `1px solid ${n.color || '#8B1A1A'}22` }} />
+                        <span style={{ position: 'absolute', bottom: 12, right: 12, fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: '#fff', background: 'rgba(26,18,8,0.7)', padding: '4px 10px', backdropFilter: 'blur(4px)', fontWeight: '700', borderRadius: 2 }}>Ver post →</span>
+                      </a>
+                    ) : (
+                      <img src={n.imagen_url} alt={n.titulo} style={{ width: '100%', height: 'auto', display: 'block', border: `1px solid ${n.color || '#8B1A1A'}22` }} />
+                    )}
+                  </div>
+                )}
 
                 {/* Texto */}
-                <div>
+                <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', gap: 14, marginBottom: 20, alignItems: 'center', flexWrap: 'wrap' }}>
                     <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: '#fff', background: n.color || '#8B1A1A', padding: '5px 14px' }}>{n.categoria || 'Noticia'}</span>
                     <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, color: 'rgba(26,18,8,0.35)', letterSpacing: 1 }}>
@@ -105,9 +133,9 @@ export default function Noticias() {
                   )}
                 </div>
 
-                {/* Imagen con link externo */}
-                {n.imagen_url && (
-                  <div style={{ position: 'relative' }}>
+{/* Imagen derecha — solo en desktop */}
+                {n.imagen_url && !isMobile && (
+                  <div style={{ position: 'relative', width: '50%', flexShrink: 0 }}>
                     {n.link_url ? (
                       <a href={n.link_url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', position: 'relative', textDecoration: 'none' }}>
                         <img

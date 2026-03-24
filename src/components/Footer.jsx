@@ -1,5 +1,8 @@
 import { Link } from 'react-router-dom'
 import logoFooter from '../assets/NADIENOSLEEV2BL.png'
+import iconInstagram from '../assets/INSTAGRAM.png'
+import iconWhatsapp from '../assets/WHATSAPP.png'
+import iconFacebook from '../assets/FACEBOOK.png'
 
 export default function Footer() {
   return (
@@ -73,6 +76,32 @@ export default function Footer() {
     e.target.style.cursor = 'default'
   }}
 >Me Encontraste</Link>
+
+            {/* REDES SOCIALES */}
+            <div style={{ marginTop: 28 }}>
+              <h4 style={{
+                fontFamily: "'Courier Prime', monospace",
+                fontSize: 11, letterSpacing: 3,
+                textTransform: 'uppercase',
+                color: '#9B2D8E', marginBottom: 16,
+              }}>Redes</h4>
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                {[
+                  { img: iconInstagram, href: 'https://www.instagram.com/nadienos.lee/', label: 'Instagram' },
+                  { img: iconWhatsapp,  href: '',        label: 'WhatsApp' },
+                  { img: iconFacebook,  href: '',  label: 'Facebook' },
+                ].map(({ img, href, label }) => (
+                  <a key={label} href={href} target="_blank" rel="noopener noreferrer"
+                    title={label}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.6, transition: 'opacity 0.2s, transform 0.2s' }}
+                    onMouseOver={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                    onMouseOut={e => { e.currentTarget.style.opacity = '0.6'; e.currentTarget.style.transform = 'translateY(0)' }}
+                  >
+                    <img src={img} alt={label} style={{ width: 28, height: 28, objectFit: 'contain' }} />
+                  </a>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* EDITORIAL */}

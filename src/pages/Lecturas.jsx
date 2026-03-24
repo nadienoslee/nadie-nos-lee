@@ -121,6 +121,7 @@ function LecturaModal({ lectura: l, onCerrar }) {
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflowX = 'hidden'
     cargarDatos()
 
     const canalValoraciones = supabase
@@ -157,6 +158,7 @@ function LecturaModal({ lectura: l, onCerrar }) {
 
     return () => {
       document.body.style.overflow = ''
+      document.documentElement.style.overflowX = ''
       supabase.removeChannel(canalValoraciones)
       supabase.removeChannel(canalComentarios)
     }
@@ -218,10 +220,26 @@ function LecturaModal({ lectura: l, onCerrar }) {
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,18,8,0.82)', backdropFilter: 'blur(8px)' }} onClick={onCerrar} />
-      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 900,
-        maxHeight: '94vh', overflowY: 'auto', background: '#faf6ee', boxShadow: '0 40px 120px rgba(0,0,0,0.5)' }}>
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      zIndex: 2000,
+      overflowY: 'auto',
+      overflowX: 'hidden',
+      padding: 20,
+      boxSizing: 'border-box',
+    }}>
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(26,18,8,0.82)', backdropFilter: 'blur(8px)' }} onClick={onCerrar} />
+      <div style={{
+        position: 'relative',
+        zIndex: 1,
+        width: '100%',
+        maxWidth: 900,
+        margin: '0 auto',
+        background: '#faf6ee',
+        boxShadow: '0 40px 120px rgba(0,0,0,0.5)',
+        overflow: 'hidden',
+      }}>
 
         {/* HERO — imagen portada */}
         <div style={{ position: 'relative', minHeight: 420, background: '#1a1208', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>

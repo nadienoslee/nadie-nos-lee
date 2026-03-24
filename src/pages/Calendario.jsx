@@ -32,16 +32,16 @@ export default function Calendario() {
       setCargando(true)
 const [{ data: ev }, { data: tal }, { data: not }, { data: conv }] = await Promise.all([
         supabase.from('eventos').select('id, titulo, fecha, color, tipo, imagen_url, descripcion, lugar, estado').eq('publicado', true),
-        supabase.from('talleres').select('id, titulo, fecha_inicio, color, imagen_url, descripcion, lugar, instructor, nivel').eq('publicado', true),
+       supabase.from('talleres').select('id, titulo, fecha, color, imagen_url, descripcion, lugar, instructor, nivel').eq('activo', true),
         supabase.from('noticias').select('id, titulo, fecha_publicacion, color, categoria, imagen_url, cuerpo').eq('publicado', true),
         supabase.from('convocatorias').select('id, titulo, fecha_cierre, color, imagen_url, descripcion, estado, generos').eq('publicado', true),
       ])
 
       const todos = [
         ...(ev   || []).map(e => ({ id: `ev-${e.id}`,   rawId: e.id, tipo: 'evento',       label: e.titulo, fecha: e.fecha,            color: e.color || TIPO_COLOR.evento,       sub: e.tipo || 'Evento',         imagen_url: e.imagen_url, descripcion: e.descripcion, detalle1: e.lugar,      detalle2: e.estado,     href: `/eventos/${e.id}` })),
-        ...(tal  || []).map(t => ({ id: `tal-${t.id}`,  rawId: t.id, tipo: 'taller',       label: t.titulo, fecha: t.fecha_inicio,      color: t.color || TIPO_COLOR.taller,       sub: 'Taller',                   imagen_url: t.imagen_url, descripcion: t.descripcion, detalle1: t.instructor, detalle2: t.nivel,      href: `/talleres` })),
+       ...(tal  || []).map(t => ({ id: `tal-${t.id}`,  rawId: t.id, tipo: 'taller',       label: t.titulo, fecha: t.fecha,             color: t.color || TIPO_COLOR.taller,       sub: 'Taller',                   imagen_url: t.imagen_url, descripcion: t.descripcion, detalle1: t.instructor, detalle2: t.nivel,      href: `/talleres/${t.id}` })),
         ...(not  || []).map(n => ({ id: `not-${n.id}`,  rawId: n.id, tipo: 'noticia',      label: n.titulo, fecha: n.fecha_publicacion, color: n.color || TIPO_COLOR.noticia,      sub: n.categoria || 'Noticia',   imagen_url: n.imagen_url, descripcion: n.cuerpo,      detalle1: n.categoria,  detalle2: null,         href: `/noticias` })),
-        ...(conv || []).map(c => ({ id: `cv-${c.id}`,   rawId: c.id, tipo: 'convocatoria', label: c.titulo, fecha: c.fecha_cierre,      color: c.color || TIPO_COLOR.convocatoria, sub: 'Convocatoria',             imagen_url: c.imagen_url, descripcion: c.descripcion, detalle1: c.estado,     detalle2: c.generos?.join(', '), href: `/convocatorias` })),
+        ...(conv || []).map(c => ({ id: `cv-${c.id}`,   rawId: c.id, tipo: 'convocatoria', label: c.titulo, fecha: c.fecha_cierre,      color: c.color || TIPO_COLOR.convocatoria, sub: 'Convocatoria',             imagen_url: c.imagen_url, descripcion: c.descripcion, detalle1: c.estado,     detalle2: c.generos?.join(', '), href: `/convocatorias/${c.id}` })),
       ].filter(x => x.fecha)
 
       setItems(todos)

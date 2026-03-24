@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { LineChart } from '@mui/x-charts/LineChart'
@@ -65,7 +66,8 @@ const secciones = [
   { id: 'noticias',      label: 'Noticias',          icon: 'news',    grupo: 'comunidad' },
   { id: 'banners',       label: 'Banners',           icon: 'banner',  grupo: 'comunidad' },
   { id: 'miembros',      label: 'Miembros',          icon: 'user',    grupo: 'identidad' },
-  { id: 'inscripciones', label: 'Inscripciones',     icon: 'check',   grupo: 'datos' },
+{ id: 'inscripciones', label: 'Inscripciones',     icon: 'check',   grupo: 'datos' },
+  { id: 'envios',        label: 'Envíos',            icon: 'note',    grupo: 'datos' },
   { id: 'usuarios',      label: 'Usuarios',          icon: 'users',   grupo: 'admin' },
 ]
 
@@ -749,7 +751,294 @@ function SeccionCalendario() {
     </div>
   )
 }
+function SeccionEnvios() {
+  const [envios, setEnvios]                     = useState([])
+  const [convocatorias, setConvocatorias]       = useState([])
+  const [cargando, setCargando]                 = useState(true)
+  const [filtroConv, setFiltroConv]             = useState('todas')
+  const [filtroEstado, setFiltroEstado]         = useState('todos')
+  const [detalle, setDetalle]                   = useState(null)
+  const [previewArchivo, setPreviewArchivo]     = useState(null)
+  const [actualizando, setActualizando]         = useState(null)
 
+  useEffect(() => {
+    cargar()
+  }, [])
+
+  const cargar = async () => {
+    setCargando(true)
+    const [{ data: e }, { data: c }] = await Promise.all([
+      supabase.from('envios').select('*, convocatorias(titulo, color)').order('created_at', { ascending: false }),
+      supabase.from('convocatorias').select('id, titulo, color').eq('publicado', true),
+    ])
+    if (e) setEnvios(e)
+    if (c) setConvocatorias(c)
+    setCargando(false)
+  }
+
+  const cambiarEstado = async (id, nuevoEstado) => {
+    setActualizando(id)
+    await supabase.from('envios').update({ estado: nuevoEstado }).eq('id', id)
+    setEnvios(prev => prev.map(e => e.id === id ? { ...e, estado: nuevoEstado } : e))
+    if (detalle?.id === id) setDetalle(prev => ({ ...prev, estado: nuevoEstado }))
+    setActualizando(null)
+  }
+
+  const eliminar = async (id) => {
+    await supabase.from('envios').delete().eq('id', id)
+    setEnvios(prev => prev.filter(e => e.id !== id))
+    if (detalle?.id === id) setDetalle(null)
+  }
+
+  const ESTADOS = {
+    'Pendiente':  { bg: 'rgba(184,148,58,0.12)', color: '#b8943a' },
+    'Leído':      { bg: 'rgba(58,171,220,0.12)', color: '#3AABDC' },
+    'Aceptado':   { bg: 'rgba(34,161,106,0.12)', color: '#22a16a' },
+    'Rechazado':  { bg: 'rgba(139,26,26,0.1)',   color: '#8B1A1A' },
+  }
+
+  const filtrados = envios.filter(e => {
+    if (filtroConv !== 'todas' && e.convocatoria_id !== filtroConv) return false
+    if (filtroEstado !== 'todos' && e.estado !== filtroEstado) return false
+    return true
+  })
+
+  const contPorEstado = (est) => envios.filter(e => e.estado === est).length
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 38, fontWeight: 400, color: C.ink }}>Envíos</h2>
+          <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 2, color: 'rgba(26,18,8,0.45)', fontWeight: '700', textTransform: 'uppercase' }}>
+            {envios.length} envío{envios.length !== 1 ? 's' : ''} en total
+          </p>
+        </div>
+        {/* Resumen rápido */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {Object.entries(ESTADOS).map(([est, s]) => (
+            <div key={est} style={{ padding: '6px 14px', background: s.bg, borderRadius: 999, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 20, color: s.color, lineHeight: 1 }}>{contPorEstado(est)}</span>
+              <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: s.color, fontWeight: '700' }}>{est}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Filtros */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
+        <select value={filtroConv} onChange={e => setFiltroConv(e.target.value)}
+          style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 1, background: '#fff', border: '1px solid rgba(26,18,8,0.12)', color: C.ink, padding: '8px 14px', borderRadius: 6, cursor: 'pointer', outline: 'none' }}>
+          <option value="todas">Todas las convocatorias</option>
+          {convocatorias.map(c => <option key={c.id} value={c.id}>{c.titulo}</option>)}
+        </select>
+        <select value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}
+          style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 1, background: '#fff', border: '1px solid rgba(26,18,8,0.12)', color: C.ink, padding: '8px 14px', borderRadius: 6, cursor: 'pointer', outline: 'none' }}>
+          <option value="todos">Todos los estados</option>
+          {Object.keys(ESTADOS).map(est => <option key={est} value={est}>{est}</option>)}
+        </select>
+        {(filtroConv !== 'todas' || filtroEstado !== 'todos') && (
+          <button onClick={() => { setFiltroConv('todas'); setFiltroEstado('todos') }}
+            style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 1, background: 'none', border: '1px solid rgba(26,18,8,0.12)', color: 'rgba(26,18,8,0.45)', padding: '8px 14px', borderRadius: 6, cursor: 'pointer' }}>
+            Limpiar filtros
+          </button>
+        )}
+        <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, color: 'rgba(26,18,8,0.4)', letterSpacing: 1, marginLeft: 'auto' }}>
+          {filtrados.length} resultado{filtrados.length !== 1 ? 's' : ''}
+        </span>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: detalle ? '1fr 420px' : '1fr', gap: 20, alignItems: 'start' }}>
+        {/* Tabla */}
+        <div style={{ background: '#fff', border: '1px solid rgba(26,18,8,0.08)', borderRadius: 10, overflow: 'hidden' }}>
+          {cargando ? (
+            <div style={{ padding: '60px', textAlign: 'center' }}>
+              <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: 'rgba(26,18,8,0.35)', fontStyle: 'italic' }}>Cargando...</p>
+            </div>
+          ) : filtrados.length === 0 ? (
+            <div style={{ padding: '60px', textAlign: 'center' }}>
+              <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: 'rgba(26,18,8,0.35)', fontStyle: 'italic' }}>Sin envíos</p>
+            </div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  {['Persona', 'Convocatoria', 'Estado', 'Fecha', ''].map(h => (
+                    <th key={h} style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(26,18,8,0.45)', padding: '13px 18px', textAlign: 'left', borderBottom: '1px solid rgba(26,18,8,0.07)', fontWeight: '700', whiteSpace: 'nowrap' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtrados.map((e, i) => {
+                  const est = ESTADOS[e.estado] || ESTADOS['Pendiente']
+                  const color = e.convocatorias?.color || '#8B1A1A'
+                  const esDetalle = detalle?.id === e.id
+                  return (
+                    <tr key={e.id}
+                      style={{ borderBottom: i < filtrados.length - 1 ? '1px solid rgba(26,18,8,0.04)' : 'none', background: esDetalle ? `${color}06` : 'transparent', transition: 'background 0.15s', cursor: 'pointer' }}
+                      onClick={() => setDetalle(esDetalle ? null : e)}
+                      onMouseOver={ev => { if (!esDetalle) ev.currentTarget.style.background = '#faf6ee' }}
+                      onMouseOut={ev => { if (!esDetalle) ev.currentTarget.style.background = 'transparent' }}
+                    >
+                      <td style={{ padding: '14px 18px' }}>
+                        <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 19, color: C.ink, fontWeight: 600, marginBottom: 2 }}>{e.nombre}</p>
+                        <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, color: 'rgba(26,18,8,0.45)', letterSpacing: 0.5 }}>{e.email}</p>
+                      </td>
+                      <td style={{ padding: '14px 18px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                          <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, color: 'rgba(26,18,8,0.6)', letterSpacing: 0.5, fontWeight: '600' }}>
+                            {e.convocatorias?.titulo?.length > 28 ? e.convocatorias.titulo.slice(0, 28) + '…' : e.convocatorias?.titulo || '—'}
+                          </span>
+                        </div>
+                      </td>
+                      <td style={{ padding: '14px 18px' }}>
+                        <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', background: est.bg, color: est.color, padding: '4px 10px', borderRadius: 999, fontWeight: '700' }}>{e.estado}</span>
+                      </td>
+                      <td style={{ padding: '14px 18px' }}>
+                        <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, color: 'rgba(26,18,8,0.45)', letterSpacing: 0.5 }}>
+                          {new Date(e.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
+                      </td>
+                      <td style={{ padding: '14px 18px', textAlign: 'right' }}>
+                        {e.archivos?.length > 0 && (
+                          <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1, color: color, background: color + '14', padding: '3px 10px', borderRadius: 999, fontWeight: '700' }}>
+                            {e.archivos.length} archivo{e.archivos.length !== 1 ? 's' : ''}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Panel detalle */}
+        {detalle && (
+          <div style={{ background: '#fff', border: '1px solid rgba(26,18,8,0.08)', borderRadius: 10, overflow: 'hidden', position: 'sticky', top: 20 }}>
+            {/* Header */}
+            <div style={{ padding: '18px 20px', borderBottom: '1px solid rgba(26,18,8,0.07)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', background: '#faf6ee' }}>
+              <div>
+                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: C.ink, fontWeight: 700, lineHeight: 1.1, marginBottom: 4 }}>{detalle.nombre}</p>
+                <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, color: 'rgba(26,18,8,0.5)', letterSpacing: 0.5 }}>{detalle.email}</p>
+                {detalle.pseudonimo && (
+                  <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, color: 'rgba(26,18,8,0.4)', letterSpacing: 1, marginTop: 3 }}>Pseudónimo: {detalle.pseudonimo}</p>
+                )}
+              </div>
+              <button onClick={() => setDetalle(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(26,18,8,0.35)', fontSize: 18, lineHeight: 1, flexShrink: 0 }}>✕</button>
+            </div>
+
+            {/* Info convocatoria + fecha */}
+            <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(26,18,8,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: detalle.convocatorias?.color || '#8B1A1A' }} />
+                <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, color: 'rgba(26,18,8,0.6)', letterSpacing: 0.5, fontWeight: '600' }}>{detalle.convocatorias?.titulo || '—'}</span>
+              </div>
+              <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, color: 'rgba(26,18,8,0.4)', letterSpacing: 0.5 }}>
+                {new Date(detalle.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </span>
+            </div>
+
+            {/* Cambiar estado */}
+            <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(26,18,8,0.06)', display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(26,18,8,0.4)', fontWeight: '700', marginRight: 4 }}>Estado:</span>
+              {Object.entries(ESTADOS).map(([est, s]) => (
+                <button key={est} onClick={() => cambiarEstado(detalle.id, est)} disabled={actualizando === detalle.id}
+                  style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', background: detalle.estado === est ? s.bg : 'transparent', color: detalle.estado === est ? s.color : 'rgba(26,18,8,0.4)', border: `1px solid ${detalle.estado === est ? s.color + '44' : 'rgba(26,18,8,0.1)'}`, padding: '5px 12px', borderRadius: 999, cursor: 'pointer', fontWeight: '700', transition: 'all 0.15s' }}>
+                  {est}
+                </button>
+              ))}
+            </div>
+
+            {/* Texto */}
+            {detalle.texto && (
+              <div style={{ padding: '20px', borderBottom: detalle.archivos?.length > 0 ? '1px solid rgba(26,18,8,0.06)' : 'none', maxHeight: 280, overflowY: 'auto' }}>
+                <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(26,18,8,0.4)', marginBottom: 10, fontWeight: '700' }}>Texto enviado</p>
+                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: 'rgba(26,18,8,0.75)', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>{detalle.texto}</p>
+                <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, color: 'rgba(26,18,8,0.35)', letterSpacing: 1, marginTop: 10 }}>
+                  {detalle.texto.trim().split(/\s+/).filter(Boolean).length} palabras
+                </p>
+              </div>
+            )}
+
+            {/* Archivos */}
+            {detalle.archivos?.length > 0 && (
+              <div style={{ padding: '20px', borderBottom: '1px solid rgba(26,18,8,0.06)' }}>
+                <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(26,18,8,0.4)', marginBottom: 12, fontWeight: '700' }}>
+                  Archivos adjuntos ({detalle.archivos.length})
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {detalle.archivos.map((a, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: '#faf6ee', border: '1px solid rgba(26,18,8,0.08)', borderRadius: 4 }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                      <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: C.ink, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.nombre}</span>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <button onClick={() => setPreviewArchivo(a)}
+                          style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1, background: 'none', border: '1px solid rgba(26,18,8,0.12)', color: 'rgba(26,18,8,0.5)', padding: '4px 10px', cursor: 'pointer', borderRadius: 3, fontWeight: '700' }}>
+                          Ver
+                        </button>
+                        <a href={a.url} download={a.nombre} target="_blank" rel="noopener noreferrer"
+                          style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1, background: detalle.convocatorias?.color || '#8B1A1A', color: '#fff', padding: '4px 10px', textDecoration: 'none', borderRadius: 3, fontWeight: '700' }}>
+                          ↓
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Eliminar */}
+            <div style={{ padding: '14px 20px' }}>
+              <button onClick={() => { if (window.confirm('¿Eliminar este envío?')) eliminar(detalle.id) }}
+                style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', background: 'none', border: '1px solid rgba(139,26,26,0.2)', color: '#8B1A1A', padding: '8px 18px', cursor: 'pointer', borderRadius: 4, fontWeight: '700', width: '100%', transition: 'all 0.15s' }}
+                onMouseOver={e => { e.currentTarget.style.background = 'rgba(139,26,26,0.06)' }}
+                onMouseOut={e => { e.currentTarget.style.background = 'none' }}
+              >Eliminar envío</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Preview archivo — Portal */}
+      {previewArchivo && typeof document !== 'undefined' && createPortal(
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.88)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, boxSizing: 'border-box' }}
+          onClick={() => setPreviewArchivo(null)}>
+          <div style={{ background: '#fff', borderRadius: 8, overflow: 'hidden', boxShadow: '0 40px 120px rgba(0,0,0,0.6)', width: 'min(820px, 92vw)', maxHeight: '88vh', display: 'flex', flexDirection: 'column' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', borderBottom: '1px solid rgba(26,18,8,0.08)', background: '#faf6ee', flexShrink: 0 }}>
+              <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: C.ink }}>{previewArchivo.nombre}</p>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <a href={previewArchivo.url} download={previewArchivo.nombre}
+                  style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: C.red, background: 'rgba(139,26,26,0.08)', border: '1px solid rgba(139,26,26,0.2)', padding: '7px 16px', textDecoration: 'none', fontWeight: '700', borderRadius: 4 }}>
+                  ↓ Descargar
+                </a>
+                <button onClick={() => setPreviewArchivo(null)}
+                  style={{ width: 34, height: 34, background: 'none', border: '1px solid rgba(26,18,8,0.12)', color: 'rgba(26,18,8,0.45)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, borderRadius: 4 }}>✕</button>
+              </div>
+            </div>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
+              {previewArchivo.url?.match(/\.(pdf)$/i) ? (
+                <iframe src={previewArchivo.url} style={{ width: '100%', height: '72vh', border: 'none', display: 'block' }} title={previewArchivo.nombre} />
+              ) : (
+                <div style={{ textAlign: 'center', padding: '48px 32px' }}>
+                  <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, color: C.ink, marginBottom: 24 }}>{previewArchivo.nombre}</p>
+                  <a href={previewArchivo.url} download={previewArchivo.nombre}
+                    style={{ fontFamily: "'Courier Prime', monospace", fontSize: 12, letterSpacing: 3, textTransform: 'uppercase', color: '#fff', background: C.red, padding: '14px 28px', textDecoration: 'none', fontWeight: '700', borderRadius: 2, display: 'inline-block' }}>
+                    ↓ Descargar archivo
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+    </div>
+  )
+}
 export default function Dashboard() {
   usePageTitle('NADIE NOS LEE | DASHBOARD')
   const [seccionActiva, setSeccionActiva]   = useState('inicio')
@@ -1318,6 +1607,7 @@ case 'escritura': return (
         </div>
       )
 
+     case 'envios': return <SeccionEnvios />
       case 'usuarios': return <Usuarios esAdmin={true} />
 
 default:

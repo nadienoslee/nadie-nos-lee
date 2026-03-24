@@ -12,11 +12,13 @@ import Escritura from './pages/Escritura'
 import Notas from './pages/Notas'
 import Lecturas from './pages/Lecturas'
 import Convocatorias from './pages/Convocatorias'
+import ConvocatoriaDetalle from './pages/ConvocatoriaDetalle'
 import Archivo from './pages/Archivo'
 import Eventos from './pages/Eventos'
 import EventoDetalle from './pages/EventoDetalle'
 import Calendario from './pages/Calendario'
 import Talleres from './pages/Talleres'
+import TallerDetalle from './pages/TallerDetalle'
 import Noticias from './pages/Noticias'
 import NotFound from './pages/NotFound'
 import Login from './admin/Login'
@@ -43,13 +45,15 @@ function AppInner() {
       <Route path="/notas"          element={<Layout><Notas /></Layout>} />
       <Route path="/lecturas"       element={<Layout><Lecturas /></Layout>} />
       <Route path="/convocatorias"  element={<Layout><Convocatorias /></Layout>} />
+      <Route path="/convocatorias/:id" element={<Layout><ConvocatoriaDetalle /></Layout>} />
       <Route path="/archivo"        element={<Layout><Archivo /></Layout>} />
       <Route path="/eventos"        element={<Layout><Eventos /></Layout>} />
       <Route path="/eventos/:id"    element={<Layout><EventoDetalle /></Layout>} />
       <Route path="/calendario"     element={<Layout><Calendario /></Layout>} />
       <Route path="/talleres"       element={<Layout><Talleres /></Layout>} />
+      <Route path="/talleres/:id"   element={<Layout><TallerDetalle /></Layout>} />
       <Route path="/noticias"       element={<Layout><Noticias /></Layout>} />
-<Route path="/admin/login"         element={<Login />} />
+      <Route path="/admin/login"         element={<Login />} />
       <Route path="/admin/cambiar-password" element={<CambiarPassword />} />
       <Route path="/admin/dashboard"     element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="*"               element={<Layout><NotFound /></Layout>} />

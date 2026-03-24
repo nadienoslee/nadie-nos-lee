@@ -24,30 +24,42 @@ export const CONFIG_SECCIONES = {
     columnas: ['titulo', 'autor', 'categoria', 'publicado'],
   },
   lecturas: {
-    tabla: 'lecturas', titulo: 'Lecturas recomendadas', color: C.blue,
+    tabla: 'lecturas', titulo: 'Lecturas recomendadas', color: C.gold,
     campos: [
-      { key: 'titulo',          label: 'Título del libro', tipo: 'text',     requerido: true },
-      { key: 'autor_libro',     label: 'Autor',            tipo: 'text',     requerido: true },
-      { key: 'anio',            label: 'Año',              tipo: 'number' },
-      { key: 'genero',          label: 'Género',           tipo: 'select', opciones: ['Narrativa', 'Poesía', 'Ensayo', 'Crónica', 'No ficción', 'Otro'] },
-      { key: 'comentario',      label: 'Comentario',       tipo: 'textarea', rows: 5 },
-      { key: 'recomendado_por', label: 'Recomendado por',  tipo: 'text' },
-      { key: 'publicado',       label: 'Publicado',        tipo: 'toggle' },
+      { key: 'titulo',              label: 'Título del libro',         tipo: 'text',     requerido: true },
+      { key: 'autor_libro',         label: 'Autor del libro',          tipo: 'text',     requerido: true },
+      { key: 'anio',                label: 'Año de publicación',       tipo: 'number' },
+      { key: 'genero',              label: 'Género',                   tipo: 'select', opciones: ['Novela', 'Cuento', 'Poesía', 'Ensayo', 'Crónica', 'Teatro', 'No ficción', 'Terror', 'Ciencia ficción', 'Fantasía', 'Otro'] },
+      { key: 'etiqueta',            label: 'Etiqueta',                 tipo: 'select', opciones: ['Recomendación', 'Imperdible', 'Favorito', 'Nuevo', 'Clásico', 'Selección del colectivo', 'Especial', 'Convocatoria'] },
+      { key: 'comentario',          label: 'Extracto / cita corta',    tipo: 'textarea', rows: 3 },
+      { key: 'sinopsis',            label: 'Sinopsis del libro',       tipo: 'textarea', rows: 5 },
+      { key: 'recomendacion_texto', label: 'Por qué lo recomendamos',  tipo: 'textarea', rows: 6 },
+      { key: 'recomendado_por',     label: 'Recomendado por',          tipo: 'usuario_selector' },
+      { key: 'recomendador_fecha',  label: 'Fecha de recomendación',   tipo: 'date' },
+      { key: 'imagen_url',          label: 'URL portada del libro',    tipo: 'text', placeholder: 'https://...' },
+      { key: 'color',               label: 'Color acento',             tipo: 'color' },
+      { key: 'publicado',           label: 'Publicado',                tipo: 'toggle' },
     ],
     columnas: ['titulo', 'autor_libro', 'genero', 'recomendado_por', 'publicado'],
   },
-  convocatorias: {
+convocatorias: {
     tabla: 'convocatorias', titulo: 'Convocatorias', color: C.red,
     campos: [
-      { key: 'titulo',       label: 'Título',           tipo: 'text',     requerido: true },
-      { key: 'descripcion',  label: 'Descripción',      tipo: 'textarea', rows: 5 },
-      { key: 'estado',       label: 'Estado',           tipo: 'select', opciones: ['Abierta', 'Cerrada', 'Próximamente'] },
-      { key: 'extension',    label: 'Extensión',        tipo: 'text', placeholder: 'ej: máx. 3000 palabras' },
-      { key: 'fecha_cierre', label: 'Fecha de cierre',  tipo: 'date' },
-{ key: 'color', label: 'Color', tipo: 'color' },
-{ key: 'imagen_url', label: 'URL imagen', tipo: 'text', placeholder: 'https://...' },
-{ key: 'link_url', label: 'Enlace externo', tipo: 'text', placeholder: 'https://instagram.com/p/...' },
-{ key: 'publicado', label: 'Publicado', tipo: 'toggle' },
+      { key: 'titulo',              label: 'Título',                  tipo: 'text',     requerido: true },
+      { key: 'descripcion',         label: 'Descripción corta',       tipo: 'textarea', rows: 3 },
+      { key: 'descripcion_larga',   label: 'Descripción larga',       tipo: 'textarea', rows: 7 },
+      { key: 'estado',              label: 'Estado',                  tipo: 'select', opciones: ['Abierta', 'Cerrada', 'Próximamente', 'En revisión'] },
+      { key: 'fecha_cierre',        label: 'Fecha de cierre',         tipo: 'date' },
+      { key: 'extension', label: 'Extensión', tipo: 'text', placeholder: 'ej: máx. 3000 palabras' },
+      { key: 'formato',             label: 'Formato de entrega',      tipo: 'text', placeholder: 'ej: Texto en el formulario / PDF' },
+      { key: 'limite_por_usuario',  label: 'Límite de envíos por persona', tipo: 'number', placeholder: '1' },
+      { key: 'permite_pseudonimo',  label: 'Permite pseudónimo',      tipo: 'toggle' },
+      { key: 'permite_archivo',     label: 'Permite adjuntar archivo', tipo: 'toggle' },
+      { key: 'limite_archivos',     label: 'Límite de archivos',       tipo: 'number', placeholder: '3' },
+      { key: 'color',               label: 'Color',                   tipo: 'color' },
+      { key: 'imagen_url',          label: 'URL imagen/banner',       tipo: 'text', placeholder: 'https://...' },
+      { key: 'link_url',            label: 'Enlace externo',          tipo: 'text', placeholder: 'https://instagram.com/p/...' },
+      { key: 'publicado',           label: 'Publicado',               tipo: 'toggle' },
     ],
     columnas: ['titulo', 'estado', 'fecha_cierre', 'publicado'],
   },
@@ -89,13 +101,19 @@ export const CONFIG_SECCIONES = {
     campos: [
       { key: 'titulo',          label: 'Título',          tipo: 'text',     requerido: true },
       { key: 'instructor',      label: 'Instructor',      tipo: 'text' },
-      { key: 'nivel',           label: 'Nivel',           tipo: 'select', opciones: ['Principiante', 'Intermedio', 'Avanzado', 'Todos los niveles'] },
       { key: 'fecha',           label: 'Fecha',           tipo: 'date' },
       { key: 'horario',         label: 'Horario',         tipo: 'text', placeholder: 'ej: Sábados 10:00–12:00' },
       { key: 'lugar',           label: 'Lugar',           tipo: 'text' },
+      { key: 'cupo_tipo',       label: 'Tipo de cupo',    tipo: 'select', opciones: ['limitado', 'libre'] },
       { key: 'cupo_total',      label: 'Cupo total',      tipo: 'number' },
       { key: 'cupo_disponible', label: 'Cupo disponible', tipo: 'number' },
-      { key: 'descripcion',     label: 'Descripción',     tipo: 'textarea', rows: 5 },
+      { key: 'es_gratis',       label: 'Gratuito',        tipo: 'toggle' },
+      { key: 'costo',           label: 'Costo ($)',       tipo: 'number', placeholder: '0' },
+      { key: 'descripcion_costo', label: 'Descripción del costo', tipo: 'text', placeholder: 'ej: Pago en efectivo el día del taller' },
+      { key: 'modalidad',       label: 'Modalidad',       tipo: 'select', opciones: ['Presencial', 'En línea', 'Híbrido'] },
+      { key: 'fecha_cierre',    label: 'Fecha límite inscripción', tipo: 'date' },
+      { key: 'descripcion',     label: 'Descripción corta', tipo: 'textarea', rows: 3 },
+      { key: 'descripcion_larga', label: 'Descripción larga', tipo: 'textarea', rows: 6 },
 { key: 'color', label: 'Color', tipo: 'color' },
 { key: 'imagen_url', label: 'URL imagen', tipo: 'text', placeholder: 'https://...' },
 { key: 'link_url', label: 'Enlace externo', tipo: 'text', placeholder: 'https://instagram.com/p/...' },
@@ -160,9 +178,16 @@ export default function SeccionCRUD({ seccion }) {
   const [alerta, setAlerta] = useState(null)
 
   // ── Confirmación antes de guardar edición ──
-  const [pendienteGuardar, setPendienteGuardar] = useState(false)
+const [pendienteGuardar, setPendienteGuardar] = useState(false)
+  const [perfilesLista, setPerfilesLista]       = useState([])
 
-  useEffect(() => { if (config) cargar() }, [seccion])
+  useEffect(() => {
+    if (config) cargar()
+    if (seccion === 'lecturas') {
+      supabase.from('perfiles').select('id, nombre, foto_url, username').eq('activo', true).order('nombre')
+        .then(({ data }) => { if (data) setPerfilesLista(data) })
+    }
+  }, [seccion])
 
   if (!config) return null
 
@@ -324,8 +349,8 @@ export default function SeccionCRUD({ seccion }) {
     return s.length > 40 ? s.slice(0, 40) + '…' : s
   }
 
-  const inputStyle = { width: '100%', padding: '12px 14px', background: '#faf6ee', border: '1px solid rgba(26,18,8,0.12)', color: C.ink, outline: 'none', fontFamily: "'Cormorant Garamond', serif", fontSize: 19, marginBottom: 16, borderRadius: 5, boxSizing: 'border-box' }
-  const labelStyle = { fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(26,18,8,0.5)', display: 'block', marginBottom: 6, fontWeight: '700' }
+  const inputStyle = { width: '100%', padding: '14px 16px', background: '#faf6ee', border: '1px solid rgba(26,18,8,0.12)', color: C.ink, outline: 'none', fontFamily: "'Cormorant Garamond', serif", fontSize: 24, marginBottom: 16, borderRadius: 5, boxSizing: 'border-box', lineHeight: 1.45 }
+  const labelStyle = { fontFamily: "'Courier Prime', monospace", fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(26,18,8,0.58)', display: 'block', marginBottom: 8, fontWeight: '700' }
   const btnP = (color = config.color, extra = {}) => ({ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', background: color, color: '#fff', border: 'none', padding: '10px 18px', cursor: 'pointer', borderRadius: 5, fontWeight: '700', ...extra })
 
   const renderCampo = (campo) => {
@@ -351,6 +376,59 @@ export default function SeccionCRUD({ seccion }) {
         </div>
       </div>
     )
+
+if (campo.tipo === 'usuario_selector') {
+      const seleccionado = perfilesLista.find(p => p.nombre === v)
+      return (
+        <div key={campo.key} style={{ marginBottom: 16 }}>
+          <label style={labelStyle}>{campo.label}</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {/* Preview del seleccionado */}
+            {seleccionado && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+                background: config.color + '08', border: `1px solid ${config.color}22`, borderRadius: 5 }}>
+                {seleccionado.foto_url
+                  ? <img src={seleccionado.foto_url} alt={seleccionado.nombre}
+                      style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: `2px solid ${config.color}44` }} />
+                  : <div style={{ width: 36, height: 36, borderRadius: '50%', background: config.color + '20',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${config.color}33` }}>
+                      <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, color: config.color }}>
+                        {seleccionado.nombre?.[0]}
+                      </span>
+                    </div>
+                }
+                <div>
+                  <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: C.ink, fontWeight: 600 }}>
+                    {seleccionado.nombre}
+                  </p>
+                  <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, color: 'rgba(26,18,8,0.45)', letterSpacing: 1, fontWeight: '700' }}>
+                    @{seleccionado.username}
+                  </p>
+                </div>
+              </div>
+            )}
+            <select
+              value={v}
+              onChange={e => {
+                const perfil = perfilesLista.find(p => p.nombre === e.target.value)
+                setForm(prev => ({
+                  ...prev,
+                  recomendado_por: perfil?.nombre || '',
+                  recomendador_foto: perfil?.foto_url || '',
+                }))
+              }}
+              style={{ ...inputStyle, cursor: 'pointer' }}
+              {...base}
+            >
+              <option value="">— Seleccionar usuario —</option>
+              {perfilesLista.map(p => (
+                <option key={p.id} value={p.nombre}>{p.nombre} (@{p.username})</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )
+    }
 
     return (
       <div key={campo.key} style={{ marginBottom: 0 }}>

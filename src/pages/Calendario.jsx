@@ -311,7 +311,7 @@ const [{ data: ev }, { data: tal }, { data: not }, { data: conv }] = await Promi
                 <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 4, textTransform: 'uppercase', color: 'rgba(26,18,8,0.4)', marginBottom: 24 }}>
                   Agenda — {meses[mes]} {anio} · {itemsDelMes.length} {itemsDelMes.length === 1 ? 'actividad' : 'actividades'}
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12, alignItems: 'stretch' }}>
                   {itemsDelMes.map(it => {
 const fp = parseFecha(it.fecha)
                     const diaNum = fp ? fp.day : 1
@@ -319,7 +319,7 @@ const fp = parseFecha(it.fecha)
                       ? new Date(fp.year, fp.month, fp.day).toLocaleDateString('es-MX', { weekday: 'short' }).replace('.', '').toUpperCase()
                       : ''
                     return (
-<div key={it.id} style={{ background: '#fff', border: `2px solid ${it.color}22`, borderRadius: 8, overflow: 'hidden', boxShadow: '0 2px 8px rgba(26,18,8,0.04)', transition: 'all 0.2s', cursor: 'pointer' }}
+<div key={it.id} style={{ background: '#fff', border: `2px solid ${it.color}22`, borderRadius: 8, overflow: 'hidden', boxShadow: '0 2px 8px rgba(26,18,8,0.04)', transition: 'all 0.2s', cursor: 'pointer', display: 'flex', flexDirection: 'column' }}
                         onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${it.color}22` }}
                         onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(26,18,8,0.04)' }}
                         onClick={() => setDiaSeleccionado(diaNum)}
@@ -336,9 +336,9 @@ const fp = parseFecha(it.fecha)
                             <span style={{ position: 'absolute', top: 10, right: 10, fontFamily: "'Courier Prime', monospace", fontSize: 8, letterSpacing: 1, textTransform: 'uppercase', color: '#fff', background: 'rgba(26,18,8,0.6)', padding: '3px 8px', backdropFilter: 'blur(4px)', fontWeight: '700' }}>{TIPO_LABEL[it.tipo]}</span>
                           </div>
                         ) : (
-                          <div style={{ height: 80, background: `linear-gradient(135deg, ${it.color}22 0%, ${it.color}08 100%)`, position: 'relative', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+<div style={{ height: 140, background: `linear-gradient(135deg, ${it.color}22 0%, ${it.color}08 100%)`, position: 'relative', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
                             <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 72, color: it.color, opacity: 0.1, lineHeight: 1, position: 'absolute', right: 12 }}>{it.label?.[0] || 'N'}</span>
-                            <div style={{ background: it.color, padding: '6px 12px', textAlign: 'center', minWidth: 48, marginLeft: 16 }}>
+                            <div style={{ background: it.color, padding: '6px 12px', textAlign: 'center', minWidth: 48, marginLeft: 0 }}>
                               <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, color: '#fff', lineHeight: 1 }}>{diaNum}</div>
                               <div style={{ fontFamily: "'Courier Prime', monospace", fontSize: 8, letterSpacing: 1, color: '#fff', textTransform: 'uppercase', fontWeight: '700' }}>{diaStr}</div>
                             </div>
@@ -347,7 +347,7 @@ const fp = parseFecha(it.fecha)
                         )}
 
                         {/* Contenido */}
-                        <div style={{ padding: '14px 16px 16px', background: it.color }}>
+                        <div style={{ padding: '14px 16px 16px', background: it.color, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                           <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: '#fff', fontWeight: 700, lineHeight: 1.3, marginBottom: 6 }}>{it.label}</p>
                           {it.descripcion && (
                             <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, color: 'rgba(255,255,255,0.78)', lineHeight: 1.55, marginBottom: 10 }}>

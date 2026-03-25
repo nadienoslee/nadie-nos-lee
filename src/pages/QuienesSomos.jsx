@@ -71,8 +71,8 @@ function MiembroSlide({ m, color, inicial, i, activo, abierto, isMobile, onSelec
             style={{
               width: '100%',
               height: '100%',
-              objectFit: visualAbierto && isMobile ? 'contain' : 'cover',
-              objectPosition: 'top center',
+              objectFit: 'contain',
+              objectPosition: 'center center',
               display: 'block',
               transition: 'transform 0.78s cubic-bezier(0.22, 1, 0.36, 1), filter 0.78s cubic-bezier(0.22, 1, 0.36, 1)',
               transform: visualAbierto ? 'scale(1.03)' : (activo ? 'scale(1.04)' : 'scale(1.0)'),
@@ -572,10 +572,10 @@ export default function QuienesSomos() {
   const [miembros, setMiembros] = useState([])
   const [cargando, setCargando] = useState(true)
   const [abiertoId, setAbiertoId] = useState(null)
-  const [isMobileGrid, setIsMobileGrid] = useState(window.innerWidth < 900)
+const [isMobileGrid, setIsMobileGrid] = useState(window.innerWidth < 1100)
 
   useEffect(() => {
-    const onResize = () => setIsMobileGrid(window.innerWidth < 900)
+    const onResize = () => setIsMobileGrid(window.innerWidth < 1100)
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])

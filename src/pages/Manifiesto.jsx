@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import AnimatedSection from '../components/AnimatedSection'
 import iconRosa from '../assets/ICONROSA.png'
 import iconRojo from '../assets/ICONROJO.png'
@@ -5,6 +6,12 @@ import usePageTitle from '../hooks/usePageTitle'
 
 export default function Manifiesto() {
   usePageTitle('NADIE NOS LEE | MANIFIESTO')
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 600)
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 600)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   return (
     <main>
@@ -76,10 +83,11 @@ export default function Manifiesto() {
           ].map((bloque, i) => (
             <AnimatedSection key={i} direction="right" delay={i * 0.1}>
               <div style={{
-                display: 'grid',
-                gridTemplateColumns: '72px 1fr',
-                gap: 36,
-                marginBottom: 72,
+              display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : '72px 1fr',
+                gap: isMobile ? 16 : 36,
+              marginBottom: 72,
+              '@media (max-width: 600px)': { gridTemplateColumns: '1fr' },
                 paddingBottom: 72,
                 borderBottom: i < 4 ? '1px solid rgba(26,18,8,0.08)' : 'none',
               }}>

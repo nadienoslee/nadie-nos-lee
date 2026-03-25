@@ -138,9 +138,11 @@ useEffect(() => {
   const escrituraActiva    = escritura || ESCRITURA_FB
   const bannersActivos     = banners.length  ? banners  : BANNERS_FB
   const eventosActivos     = eventos.length  ? eventos  : EVENTOS_FB
-  // Carrusel: noticias de esta semana si hay, si no banners
-  const carruselItems      = noticiasSemana.length ? noticiasSemana : bannersActivos
-  const esCarruselNoticia  = noticiasSemana.length > 0
+// Carrusel: noticias + banners mezclados
+  const carruselItems     = [
+    ...noticiasSemana.map(n => ({ ...n, _tipo: 'noticia' })),
+    ...bannersActivos.map(b => ({ ...b, _tipo: 'banner' })),
+  ]
 
   // Carrusel automático — usa bannersActivos.length directamente
 useEffect(() => {
@@ -158,8 +160,8 @@ useEffect(() => {
     setSlide(0)
   }, [carruselItems.length])
 
-  const prevSlide = () => { setSlide(s => (s - 1 + bannersActivos.length) % bannersActivos.length) }
-  const nextSlide = () => { setSlide(s => (s + 1) % bannersActivos.length) }
+const prevSlide = () => { setSlide(s => (s - 1 + carruselItems.length) % carruselItems.length) }
+  const nextSlide = () => { setSlide(s => (s + 1) % carruselItems.length) }
 
 const fechaEscritura = escrituraActiva.fecha ||
   (escrituraActiva.fecha_publicacion
@@ -562,7 +564,7 @@ const paginaActualIdx = Math.min(paginaEscritura, totalPagsTexto - 1)
             {/* Track con transición CSS */}
             <div style={{ display: 'flex', transform: `translateX(-${slide * 100}%)`, transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }}>
 {carruselItems.map((item, i) => {
-                if (esCarruselNoticia) {
+                if (item._tipo === 'noticia') {
                   const n = item
                   const color = n.color || '#8B1A1A'
                   const href = n.link_url || '/noticias'

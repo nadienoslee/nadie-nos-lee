@@ -32,7 +32,7 @@ function MiembroSlide({ m, color, inicial, i, activo, abierto, isMobile, onSelec
       style={{
         width: '100%',
         height: isMobile ? (abierto ? 660 : 520) : 560,
-        background: '#111',
+        background: isMobile && abierto ? '#fff' : '#111',
         border: `1px solid ${activo ? color + '55' : 'rgba(26,18,8,0.08)'}`,
         borderTop: `4px solid ${color}`,
         overflow: 'hidden',
@@ -56,7 +56,7 @@ function MiembroSlide({ m, color, inicial, i, activo, abierto, isMobile, onSelec
           inset: visualAbierto ? 'auto' : 0,
           width: visualAbierto ? (isMobile ? '100%' : '38%') : '100%',
           minWidth: visualAbierto ? (isMobile ? '100%' : '38%') : '100%',
-          height: visualAbierto ? (isMobile ? 280 : '100%') : '100%',
+          height: visualAbierto ? (isMobile ? 200 : '100%') : '100%',
           background: m.foto_url ? '#efe7dc' : `linear-gradient(180deg, ${color}22 0%, ${color}08 100%)`,
           overflow: 'hidden',
           flexShrink: 0,
@@ -71,7 +71,7 @@ function MiembroSlide({ m, color, inicial, i, activo, abierto, isMobile, onSelec
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'cover',
+              objectFit: visualAbierto && isMobile ? 'contain' : 'cover',
               objectPosition: 'top center',
               display: 'block',
               transition: 'transform 0.78s cubic-bezier(0.22, 1, 0.36, 1), filter 0.78s cubic-bezier(0.22, 1, 0.36, 1)',

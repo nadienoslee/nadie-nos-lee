@@ -152,7 +152,7 @@ background: visualAbierto
             : '24px 24px 22px',
           background: visualAbierto ? '#fff' : 'transparent',
           borderLeft: !isMobile && visualAbierto ? `1px solid ${color}18` : 'none',
-          overflow: 'hidden',
+         overflow: visualAbierto ? 'auto' : 'hidden',
           flexShrink: 0,
           transition: 'width 0.78s cubic-bezier(0.22, 1, 0.36, 1), min-width 0.78s cubic-bezier(0.22, 1, 0.36, 1), height 0.72s cubic-bezier(0.22, 1, 0.36, 1), background 0.72s cubic-bezier(0.22, 1, 0.36, 1), padding 0.72s cubic-bezier(0.22, 1, 0.36, 1)',
         }}
@@ -242,8 +242,8 @@ background: visualAbierto
                 color: 'rgba(26,18,8,0.7)',
                 fontStyle: 'italic',
                 marginBottom: 0,
-                maxHeight: isMobile ? 220 : 360,
-                overflow: 'hidden',
+                maxHeight: 'none',
+                overflow: 'visible',
               }}
             >
               {m.bio}

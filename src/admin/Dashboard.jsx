@@ -377,7 +377,7 @@ function EscrituraSeccion({ escriturasList, usuario, cargarDatos, registrarAccio
     { key: 'imagen_url', label: 'URL imagen',  placeholder: 'https://...' },
   ]
 
-  const ModalForm = ({ titulo, form, setForm, onGuardar, onCerrar }) => (
+  const renderModalForm = ({ titulo, form, setForm, onGuardar, onCerrar }) => (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(250,246,238,0.97)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
       <div style={{ width: '100%', maxWidth: 640, background: '#fff', padding: '40px', border: '1px solid rgba(155,45,142,0.2)', maxHeight: '90vh', overflowY: 'auto', borderRadius: 10 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 28 }}>
@@ -468,44 +468,40 @@ function EscrituraSeccion({ escriturasList, usuario, cargarDatos, registrarAccio
       ))}
 
       {/* Modal nueva escritura */}
-      {modalNuevo && (
-        <ModalForm
-          titulo="Nueva escritura"
-          form={formNuevo}
-          setForm={setFormNuevo}
-          onCerrar={() => setModalNuevo(false)}
-          onGuardar={async () => {
-            const { error } = await supabase.from('escrituras').insert({
-              titulo:    formNuevo.titulo,
-              autor:     formNuevo.autor,
-              genero:    formNuevo.genero,
-              contenido: formNuevo.contenido,
-              fragmento: formNuevo.fragmento || null,
-              semana:    formNuevo.semana || null,
-              imagen_url: formNuevo.imagen_url || null,
-              publicado: true,
-              created_by: usuario?.id,
-            })
-            if (!error) {
-              setModalNuevo(false)
-              registrarAccion('nuevo', 'escritura', `Publicó "${formNuevo.titulo}"`)
-              setAlertaGeneral({ tipo: 'exito', titulo: '¡Publicada!', mensaje: `"${formNuevo.titulo}" fue creada.`, botonTexto: 'OK', autoclose: 2500 })
-              cargarDatos()
-            }
-          }}
-        />
-      )}
+      {modalNuevo && renderModalForm({
+        titulo: "Nueva escritura",
+        form: formNuevo,
+        setForm: setFormNuevo,
+        onCerrar: () => setModalNuevo(false),
+        onGuardar: async () => {
+          const { error } = await supabase.from('escrituras').insert({
+            titulo:    formNuevo.titulo,
+            autor:     formNuevo.autor,
+            genero:    formNuevo.genero,
+            contenido: formNuevo.contenido,
+            fragmento: formNuevo.fragmento || null,
+            semana:    formNuevo.semana || null,
+            imagen_url: formNuevo.imagen_url || null,
+            publicado: true,
+            created_by: usuario?.id,
+          })
+          if (!error) {
+            setModalNuevo(false)
+            registrarAccion('nuevo', 'escritura', `Publicó "${formNuevo.titulo}"`)
+            setAlertaGeneral({ tipo: 'exito', titulo: '¡Publicada!', mensaje: `"${formNuevo.titulo}" fue creada.`, botonTexto: 'OK', autoclose: 2500 })
+            cargarDatos()
+          }
+        }
+      })}
 
       {/* Modal editar escritura */}
-      {modalEditar && (
-        <ModalForm
-          titulo={`Editar — ${modalEditar.titulo}`}
-          form={formEditar}
-          setForm={setFormEditar}
-          onCerrar={() => setModalEditar(null)}
-          onGuardar={guardarEdicion}
-        />
-      )}
+      {modalEditar && renderModalForm({
+        titulo: `Editar — ${modalEditar.titulo}`,
+        form: formEditar,
+        setForm: setFormEditar,
+        onCerrar: () => setModalEditar(null),
+        onGuardar: guardarEdicion,
+      })}
     </div>
   )
 }

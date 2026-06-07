@@ -46,7 +46,7 @@ export default function Manifiesto() {
               fontSize: 24, fontStyle: 'italic',
               color: 'rgba(26,18,8,0.55)', lineHeight: 1.7,
             }}>
-              Lo que somos, lo que defendemos, lo que escribimos.
+              La palabra compartida como comunidad, resistencia y futuro.
             </p>
           </AnimatedSection>
         </div>
@@ -54,33 +54,23 @@ export default function Manifiesto() {
 
       <section style={{ background: '#faf6ee', padding: '80px 40px 120px' }}>
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
-          {[
-            {
-              num: '01',
-              titulo: 'Escribimos porque sí',
-              texto: 'No necesitamos justificar la escritura. No escribimos para ser publicados, ni para ser aplaudidos, ni para dejar huella. Escribimos porque el lenguaje es la única forma que tenemos de habitar el mundo con algo parecido a la precisión. Escribimos porque el silencio también tiene gramática, y preferimos la nuestra.',
-            },
-            {
-              num: '02',
-              titulo: 'Nadie nos lee — y eso nos libera',
-              texto: 'El nombre no es una queja. Es una declaración. Cuando escribes sin la presión de la audiencia, cuando el texto no tiene que complacer a nadie, ocurre algo extraño y maravilloso: aparece la verdad. Nadie nos lee es el espacio donde la escritura puede ser exactamente lo que necesita ser.',
-            },
-            {
-              num: '03',
-              titulo: 'Todos los géneros, todas las voces',
-              texto: 'No jerarquizamos. Un poema de tres líneas tiene el mismo valor que una novela de trescientas páginas si ambos son honestos. La crónica, el ensayo, la microficción, el fragmento sin forma: todo cabe aquí. Lo único que no tiene lugar es la escritura que miente sobre lo que quiere ser.',
-            },
-            {
-              num: '04',
-              titulo: 'Somos un colectivo, no una institución',
-              texto: 'No tenemos consejo editorial, ni criterio de selección cerrado, ni jerarquías fijas. Somos personas que escriben y que leen lo que otros escriben, con cuidado y sin condescendencia. La comunidad es el proyecto. El texto es la excusa.',
-            },
-            {
-              num: '05',
-              titulo: 'Escribimos desde los márgenes',
-              texto: 'Desde las ciudades que no aparecen en los suplementos literarios. Desde los géneros que el mercado editorial ignora. Desde las voces que no tienen agente ni editorial ni plataforma. Los márgenes son el lugar donde la literatura todavía tiene algo que decir.',
-            },
-          ].map((bloque, i) => (
+{[
+  {
+    num: '01',
+    titulo: 'Un proyecto poético colectivo',
+    texto: 'Nadie nos lee es un proyecto poético colectivo que nace para reclamar la voz y ejercer la autogestión como una forma de construcción en comunidad y resistencia cultural. Originario de Los Mochis, Ahome, Sinaloa, y organizado por Francisco Bojórquez, Janet Fitch, Issac Cordero y Cecilia Aurora Bojórquez, el colectivo surge como una apuesta por la palabra compartida y el encuentro entre quienes escriben, leen y habitan la poesía como forma de diálogo.',
+  },
+  {
+    num: '02',
+    titulo: 'Lectura y escritura como prácticas vivas',
+    texto: 'Más que un proyecto de difusión, Nadie nos lee es un espacio destinado a la lectura y la escritura como prácticas vivas. A través de círculos de lectura, talleres, conversatorios, micrófonos abiertos y otras actividades, el colectivo busca generar puentes entre espacios alternativos e institucionales, en los que la poesía circule entre quienes la escuchan, la leen y la comparten como una posibilidad de reconocimiento mutuo.',
+  },
+  {
+    num: '03',
+    titulo: 'Mapear las voces del noroeste',
+    texto: 'Con una mirada puesta más allá de su lugar de origen, Nadie nos lee trabaja con la intención de mapear las voces poéticas del noroeste de México, visibilizando escrituras que muchas veces quedan fuera del centro y del circuito hegemónico literario. Desde esa conciencia de margen, el proyecto camina hacia el futuro con el deseo de expandir sus actividades a otras ciudades y estados, fortaleciendo redes, amplificando voces y demostrando que, incluso cuando parece que nadie lee, la poesía sigue encontrando dónde decirse.',
+  },
+].map((bloque, i) => (
             <AnimatedSection key={i} direction="right" delay={i * 0.1}>
               <div style={{
               display: 'grid',
@@ -89,7 +79,7 @@ export default function Manifiesto() {
               marginBottom: 72,
               '@media (max-width: 600px)': { gridTemplateColumns: '1fr' },
                 paddingBottom: 72,
-                borderBottom: i < 4 ? '1px solid rgba(26,18,8,0.08)' : 'none',
+                borderBottom: i < 2 ? '1px solid rgba(26,18,8,0.08)' : 'none',
               }}>
                 <div style={{
                   fontFamily: "'Bebas Neue', sans-serif",

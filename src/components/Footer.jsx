@@ -109,7 +109,7 @@ export default function Footer() {
             <h4 style={{
               fontFamily: "'Courier Prime', monospace",
               fontSize: 11, letterSpacing: 3,
-              textTransform: 'uppercase', color: '#8B1A1A', marginBottom: 20,
+              textTransform: 'uppercase', color: '#fe0122', marginBottom: 20,
             }}>Editorial</h4>
             {[
               ['Escritura de la semana', '/escritura'],

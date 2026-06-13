@@ -41,7 +41,7 @@ function normalizarEvento(ev) {
       fecha: ev._diaStr,
       mes: ev._mesStr,
       lugar: ev.lugar || '',
-      color: ev.color || '#9B2D8E',
+      color: ev.color || '#f74fb4',
       imagen_url: ev.imagen_url || '',
     }
   }
@@ -56,7 +56,7 @@ function normalizarEvento(ev) {
     fecha: fechaOk ? d.getDate().toString() : '—',
     mes: fechaOk ? d.toLocaleDateString('es-MX', { month: 'short' }).replace('.', '').toUpperCase() : '',
     lugar: ev.lugar || '',
-    color: ev.color || '#9B2D8E',
+    color: ev.color || '#f74fb4',
     imagen_url: ev.imagen_url || '',
   }
 }
@@ -215,8 +215,8 @@ const paginaActualIdx = Math.min(paginaEscritura, totalPagsTexto - 1)
 
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center', animation: 'fadeInUp 1s ease 0.8s both', position: 'relative', zIndex: 2, marginBottom: 80 }}>
           <Link to="/escritura" style={{ fontFamily: "'Courier Prime', monospace", fontSize: 13, letterSpacing: 3, textTransform: 'uppercase', background: '#9B2D8E', color: '#f5ede0', padding: '16px 36px', border: '2px solid #9B2D8E', transition: 'background 0.3s, transform 0.2s', display: 'inline-block' }}
-            onMouseOver={e => { e.target.style.background = '#b535a8'; e.target.style.transform = 'translateY(-2px)' }}
-            onMouseOut={e => { e.target.style.background = '#9B2D8E'; e.target.style.transform = 'translateY(0)' }}>
+            onMouseOver={e => { e.target.style.background = '#f74fb4'; e.target.style.transform = 'translateY(-2px)' }}
+            onMouseOut={e => { e.target.style.background = '#f74fb4'; e.target.style.transform = 'translateY(0)' }}>
             Leer escritura de la semana
           </Link>
           <Link to="/manifiesto" style={{ fontFamily: "'Courier Prime', monospace", fontSize: 13, letterSpacing: 3, textTransform: 'uppercase', background: 'transparent', color: '#1a1208', padding: '16px 36px', border: '2px solid rgba(26,18,8,0.3)', transition: 'border-color 0.3s, transform 0.2s', display: 'inline-block' }}
@@ -228,7 +228,7 @@ const paginaActualIdx = Math.min(paginaEscritura, totalPagsTexto - 1)
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
           <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(26,18,8,0.3)' }}>Desplazar</span>
-          <div style={{ width: 1, height: 40, background: 'rgba(155,45,142,0.4)', animation: 'scrollLine 2s ease-in-out infinite' }} />
+          <div style={{ width: 1, height: 40, background: '#f74fb4', animation: 'scrollLine 2s ease-in-out infinite' }} />
         </div>
       </section>
 

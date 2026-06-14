@@ -35,14 +35,16 @@ export default function Eventos() {
   const proximos = filtrados.filter(e => e.estado === 'Próximo')
   const pasados  = filtrados.filter(e => e.estado === 'Pasado')
 
-  const getFecha = (ev) => ev.fecha ? new Date(ev.fecha).getDate().toString() : '—'
-  const getMes = (ev) =>
-    ev.fecha
-      ? new Date(ev.fecha)
-          .toLocaleDateString('es-MX', { month: 'short' })
-          .replace('.', '')
-          .toUpperCase()
-      : ''
+const getFecha = (ev) =>
+  ev.fecha ? new Date(`${ev.fecha}T12:00:00`).getDate().toString() : '—'
+
+const getMes = (ev) =>
+  ev.fecha
+    ? new Date(`${ev.fecha}T12:00:00`)
+        .toLocaleDateString('es-MX', { month: 'short' })
+        .replace('.', '')
+        .toUpperCase()
+    : ''
 
   const getTextColor = (bgColor) => {
     if (!bgColor) return '#1a1208'

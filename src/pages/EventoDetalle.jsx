@@ -42,9 +42,13 @@ export default function EventoDetalle() {
   const color     = ev.color || '#9B2D8E'
   const gradiente = ev.gradiente || `linear-gradient(135deg, ${color}22, ${color}08)`
 
-  const fechaFormateada = ev.fecha
-    ? new Date(ev.fecha).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })
-    : '—'
+const fechaFormateada = ev.fecha
+  ? new Date(`${ev.fecha}T12:00:00`).toLocaleDateString('es-MX', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  : '—'
   return (
     <main>
       {/* HERO */}

@@ -307,9 +307,13 @@ const [pendienteGuardar, setPendienteGuardar] = useState(false)
     if (typeof v === 'boolean') return (
       <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', padding: '4px 10px', borderRadius: 4, fontWeight: '700', background: v ? 'rgba(34,161,106,0.1)' : 'rgba(26,18,8,0.05)', color: v ? C.green : 'rgba(26,18,8,0.35)' }}>{v ? 'Sí' : 'No'}</span>
     )
-    if (col === 'fecha' || col === 'fecha_cierre' || col === 'fecha_publicacion') {
-      try { return new Date(v).toLocaleDateString('es-MX') } catch { return v }
-    }
+if (col === 'fecha' || col === 'fecha_cierre' || col === 'fecha_publicacion') {
+  try {
+    return new Date(`${v}T12:00:00`).toLocaleDateString('es-MX')
+  } catch {
+    return v
+  }
+}
     if (col === 'color') return (
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
         <span style={{ width: 14, height: 14, borderRadius: '50%', background: v, display: 'inline-block', border: '1px solid rgba(26,18,8,0.1)' }} />

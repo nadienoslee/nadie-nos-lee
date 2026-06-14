@@ -88,7 +88,7 @@ export default function Footer() {
               <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
                 {[
                   { img: iconInstagram, href: 'https://www.instagram.com/nadienos.lee/', label: 'Instagram' },
-                  { img: iconWhatsapp,  href: '',        label: 'WhatsApp' },
+                  { img: iconWhatsapp,  href: 'https://chat.whatsapp.com/LBLIzgZs6TwG8XsVatDzG8?s=cl&p=i&ilr=2',        label: 'WhatsApp' },
                   { img: iconFacebook,  href: 'https://www.facebook.com/share/18PjUFqvcg/?mibextid=wwXIfr',  label: 'Facebook' },
                 ].map(({ img, href, label }) => (
                   <a key={label} href={href} target="_blank" rel="noopener noreferrer"

@@ -38,6 +38,7 @@ function normalizarEvento(ev) {
       id: ev.id,
       tipo: ev.tipo || 'Evento',
       titulo: ev.titulo || '',
+      descripcion: ev.descripcion || '',
       fecha: ev._diaStr,
       mes: ev._mesStr,
       lugar: ev.lugar || '',
@@ -46,13 +47,14 @@ function normalizarEvento(ev) {
     }
   }
 
-  const d = ev.fecha ? new Date(ev.fecha) : null
+  const d = ev.fecha ? new Date(`${ev.fecha}T12:00:00`) : null
   const fechaOk = d && !isNaN(d)
 
   return {
     id: ev.id,
     tipo: ev.tipo || 'Evento',
     titulo: ev.titulo || '',
+    descripcion: ev.descripcion || ev.descripcion_larga || '',
     fecha: fechaOk ? d.getDate().toString() : '—',
     mes: fechaOk ? d.toLocaleDateString('es-MX', { month: 'short' }).replace('.', '').toUpperCase() : '',
     lugar: ev.lugar || '',
@@ -82,8 +84,9 @@ export default function Home() {
   const [fraseIdx, setFraseIdx]         = useState(0)
   const [fraseVisible, setFraseVisible] = useState(true)
   const [slide, setSlide]               = useState(0)
-  const [pausado, setPausado]           = useState(false)
-  const intervalRef                     = useRef(null)
+const [pausado, setPausado]           = useState(false)
+const intervalRef                     = useRef(null)
+const eventosCarouselRef              = useRef(null)
 
 const [escritura, setEscritura]             = useState(null)
 const [banners, setBanners]                 = useState([])
@@ -110,7 +113,7 @@ useEffect(() => {
       const { data: b } = await supabase.from('banners').select('*').eq('activo', true).order('orden', { ascending: true })
       if (b?.length) setBanners(b)
 
-      const { data: ev } = await supabase.from('eventos').select('*').eq('publicado', true).eq('estado', 'Próximo').order('fecha', { ascending: true }).limit(3)
+const { data: ev } = await supabase.from('eventos').select('*').eq('publicado', true).eq('estado', 'Próximo').order('fecha', { ascending: true }).limit(12)
       if (ev?.length) setEventos(ev)
 
       // Noticias publicadas en los últimos 7 días
@@ -187,6 +190,15 @@ const paginasTexto = (() => {
 })()
 const totalPagsTexto  = paginasTexto.length
 const paginaActualIdx = Math.min(paginaEscritura, totalPagsTexto - 1)
+
+const moverEventos = (direccion) => {
+  if (!eventosCarouselRef.current) return
+
+  eventosCarouselRef.current.scrollBy({
+    left: direccion === 'right' ? 340 : -340,
+    behavior: 'smooth',
+  })
+}
 
   return (
     <main>
@@ -326,225 +338,272 @@ const paginaActualIdx = Math.min(paginaEscritura, totalPagsTexto - 1)
   </div>
 </section>
 
-      {/* ═══════ PRÓXIMOS EVENTOS ═══════ */}
-      <section style={{ background: '#f5ede0', padding: '100px 40px', borderTop: '1px solid rgba(58,171,220,0.12)' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <AnimatedSection direction="right">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 56, flexWrap: 'wrap', gap: 16 }}>
-              <div>
-                <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 4, textTransform: 'uppercase', color: '#3AABDC', marginBottom: 8 }}>Comunidad</p>
-                <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(36px, 4.5vw, 60px)', fontWeight: 300, color: '#1a1208' }}>Próximos eventos</h2>
-              </div>
-              <Link to="/eventos" style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(26,18,8,0.5)', borderBottom: '1px solid rgba(26,18,8,0.2)', paddingBottom: 2 }}>Ver todos →</Link>
-            </div>
-          </AnimatedSection>
+{/* ═══════ PRÓXIMOS EVENTOS ═══════ */}
+<section style={{ background: '#f5ede0', padding: '90px 40px', borderTop: '1px solid rgba(58,171,220,0.12)' }}>
+  <div style={{ maxWidth: 1200, margin: '0 auto', position: 'relative' }}>
+    <AnimatedSection direction="right">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 44, flexWrap: 'wrap', gap: 16 }}>
+        <div>
+          <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 4, textTransform: 'uppercase', color: '#3AABDC', marginBottom: 8 }}>Comunidad</p>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(36px, 4.5vw, 60px)', fontWeight: 300, color: '#1a1208' }}>Próximos eventos</h2>
+        </div>
+        <Link to="/eventos" style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(26,18,8,0.5)', borderBottom: '1px solid rgba(26,18,8,0.2)', paddingBottom: 2 }}>Ver todos →</Link>
+      </div>
+    </AnimatedSection>
 
-                    <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 760px))',
-              justifyContent: 'start',
-              gap: 28,
-            }}
-          >
-            {eventosActivos.map((ev, i) => {
-              const n = normalizarEvento(ev)
-              return (
-                <AnimatedSection
-                  key={n.id}
-                  direction="up"
-                  delay={i * 0.1}
-                  style={{ display: 'flex', justifyContent: 'center' }}
+{eventosActivos.length > 4 && (
+      <>
+        <button
+          onClick={() => moverEventos('left')}
+          style={{
+            position: 'absolute',
+            left: -22,
+            top: '58%',
+            zIndex: 5,
+            width: 46,
+            height: 46,
+            borderRadius: '50%',
+            border: '1px solid rgba(26,18,8,0.12)',
+            background: '#faf6ee',
+            color: '#1a1208',
+            cursor: 'pointer',
+            fontSize: 24,
+            boxShadow: '0 12px 30px rgba(26,18,8,0.14)',
+          }}
+        >
+          ‹
+        </button>
+
+        <button
+          onClick={() => moverEventos('right')}
+          style={{
+            position: 'absolute',
+            right: -22,
+            top: '58%',
+            zIndex: 5,
+            width: 46,
+            height: 46,
+            borderRadius: '50%',
+            border: '1px solid rgba(26,18,8,0.12)',
+            background: '#faf6ee',
+            color: '#1a1208',
+            cursor: 'pointer',
+            fontSize: 24,
+            boxShadow: '0 12px 30px rgba(26,18,8,0.14)',
+          }}
+        >
+          ›
+        </button>
+      </>
+    )}
+
+    <div
+      ref={eventosCarouselRef}
+      style={{
+        display: 'flex',
+        gap: 24,
+        overflowX: eventosActivos.length > 4 ? 'auto' : 'visible',
+        scrollBehavior: 'smooth',
+        justifyContent: eventosActivos.length <= 3 ? 'center' : 'flex-start',
+        padding: '8px 4px 24px',
+        scrollbarWidth: 'none',
+      }}
+    >
+      {eventosActivos.map((ev, i) => {
+        const n = normalizarEvento(ev)
+        const textColor = getTextColor(n.color)
+
+        return (
+          <AnimatedSection key={n.id} direction="up" delay={i * 0.1} style={{ flex: '0 0 310px' }}>
+            <Link to={`/eventos/${n.id}`} style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
+              <div
+                style={{
+                  background: '#fff',
+                  border: `2px solid ${n.color}22`,
+                  overflow: 'hidden',
+                  transition: 'transform 0.3s, box-shadow 0.3s, border-color 0.3s',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  boxShadow: '0 14px 38px rgba(26,18,8,0.08)',
+                }}
+                onMouseOver={e => {
+                  e.currentTarget.style.transform = 'translateY(-6px)'
+                  e.currentTarget.style.boxShadow = '0 22px 54px rgba(26,18,8,0.13)'
+                  e.currentTarget.style.borderColor = n.color + '66'
+                }}
+                onMouseOut={e => {
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = '0 14px 38px rgba(26,18,8,0.08)'
+                  e.currentTarget.style.borderColor = n.color + '22'
+                }}
+              >
+                <div
+                  style={{
+                    height: 210,
+                    background: n.imagen_url ? '#efe7dc' : `linear-gradient(135deg, ${n.color}33 0%, ${n.color}10 100%)`,
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
                 >
-                  <Link
-                    to={`/eventos/${n.id}`}
-                    style={{
-                      textDecoration: 'none',
-                      display: 'block',
-                      width: '100%',
-                      maxWidth: '760px',
-                    }}
-                  >
-                    <div
+                  {n.imagen_url ? (
+                    <img
+                      src={n.imagen_url}
+                      alt={n.titulo}
                       style={{
-                        background: '#fff',
-                        border: `2px solid ${n.color}22`,
-                        overflow: 'hidden',
-                        transition: 'transform 0.3s, box-shadow 0.3s, border-color 0.3s',
+                        position: 'absolute',
+                        inset: 0,
                         width: '100%',
-                        boxShadow: '0 18px 54px rgba(26,18,8,0.08)',
+                        height: '100%',
+                        objectFit: 'cover',
+                        objectPosition: 'center',
                       }}
-                      onMouseOver={e => {
-                        e.currentTarget.style.transform = 'translateY(-6px)'
-                        e.currentTarget.style.boxShadow = '0 24px 64px rgba(26,18,8,0.14)'
-                        e.currentTarget.style.borderColor = n.color + '66'
-                      }}
-                      onMouseOut={e => {
-                        e.currentTarget.style.transform = 'translateY(0)'
-                        e.currentTarget.style.boxShadow = '0 18px 54px rgba(26,18,8,0.08)'
-                        e.currentTarget.style.borderColor = n.color + '22'
+                    />
+                  ) : (
+                    <span
+                      style={{
+                        fontFamily: "'Bebas Neue', sans-serif",
+                        fontSize: 120,
+                        color: n.color,
+                        opacity: 0.08,
+                        lineHeight: 1,
+                        userSelect: 'none',
+                        position: 'absolute',
+                        bottom: -12,
+                        right: 14,
                       }}
                     >
-                      <div
-                        style={{
-                          height: 270,
-                          background: n.imagen_url
-                            ? '#efe7dc'
-                            : `linear-gradient(135deg, ${n.color}33 0%, ${n.color}10 100%)`,
-                          display: 'flex',
-                          alignItems: 'flex-end',
-                          padding: '16px 20px',
-                          position: 'relative',
-                          overflow: 'hidden',
-                        }}
-                      >
-                        {n.imagen_url && (
-                          <>
-                            <img
-                              src={n.imagen_url}
-                              alt={n.titulo}
-                              style={{
-                                position: 'absolute',
-                                inset: 0,
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                              }}
-                            />
-                            <div
-                              style={{
-                                position: 'absolute',
-                                inset: 0,
-                                background: 'linear-gradient(to top, rgba(26,18,8,0.34) 0%, rgba(26,18,8,0.10) 48%, rgba(26,18,8,0.03) 100%)',
-                              }}
-                            />
-                          </>
-                        )}
+                      {n.tipo?.[0] || 'E'}
+                    </span>
+                  )}
 
-                        <div
-                          style={{
-                            position: 'absolute',
-                            top: 16,
-                            left: 16,
-                            background: n.color,
-                            padding: '8px 14px',
-                            textAlign: 'center',
-                            minWidth: 64,
-                            boxShadow: '0 10px 28px rgba(26,18,8,0.18)',
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontFamily: "'Bebas Neue', sans-serif",
-                              fontSize: 32,
-                              color: getTextColor(n.color),
-                              lineHeight: 1,
-                              fontWeight: '900',
-                            }}
-                          >
-                            {n.fecha}
-                          </div>
-                          <div
-                            style={{
-                              fontFamily: "'Courier Prime', monospace",
-                              fontSize: 10,
-                              letterSpacing: 2,
-                              color: getTextColor(n.color),
-                              textTransform: 'uppercase',
-                              fontWeight: '900',
-                            }}
-                          >
-                            {n.mes}
-                          </div>
-                        </div>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: n.imagen_url ? 'linear-gradient(to top, rgba(26,18,8,0.22), rgba(26,18,8,0.02))' : 'transparent',
+                    }}
+                  />
 
-                        <span
-                          style={{
-                            position: 'absolute',
-                            top: 16,
-                            right: 16,
-                            fontFamily: "'Courier Prime', monospace",
-                            fontSize: 9,
-                            letterSpacing: 2,
-                            textTransform: 'uppercase',
-                            color: n.imagen_url ? '#fff' : n.color,
-                            background: n.imagen_url ? 'rgba(26,18,8,0.65)' : '#fff',
-                            padding: '4px 10px',
-                            backdropFilter: n.imagen_url ? 'blur(4px)' : 'none',
-                            fontWeight: '700',
-                          }}
-                        >
-                          {n.tipo}
-                        </span>
-
-                        {!n.imagen_url && (
-                          <span
-                            style={{
-                              fontFamily: "'Bebas Neue', sans-serif",
-                              fontSize: 120,
-                              color: n.color,
-                              opacity: 0.08,
-                              lineHeight: 1,
-                              userSelect: 'none',
-                              position: 'absolute',
-                              bottom: -10,
-                              right: 12,
-                            }}
-                          >
-                            {n.tipo === 'Lectura' ? 'L' : n.tipo === 'Taller' ? 'T' : 'P'}
-                          </span>
-                        )}
-                      </div>
-
-                       <div style={{ padding: '26px 28px 30px', background: n.color }}>
-                        <h3
-                          style={{
-                            fontFamily: "'Cormorant Garamond', serif",
-                            fontSize: 24,
-                            fontWeight: '900',
-                            color: getTextColor(n.color),
-                            lineHeight: 1.25,
-                            marginBottom: 10,
-                          }}
-                        >
-                          {n.titulo}
-                        </h3>
-
-                        <p
-                          style={{
-                            fontFamily: "'Courier Prime', monospace",
-                            fontSize: 12,
-                            color: getTextColor(n.color),
-                            letterSpacing: 1,
-                            marginBottom: 20,
-                            fontWeight: '900',
-                          }}
-                        >
-                          {n.lugar}
-                        </p>
-
-                        <span
-                          style={{
-                            fontFamily: "'Courier Prime', monospace",
-                            fontSize: 11,
-                            letterSpacing: 2,
-                            textTransform: 'uppercase',
-                            color: getTextColor(n.color),
-                            borderBottom: `1px solid ${getTextColor(n.color)}`,
-                            fontWeight: '900',
-                          }}
-                        >
-                          Ver evento →
-                        </span>
-                      </div>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 14,
+                      left: 14,
+                      background: n.color,
+                      padding: '7px 12px',
+                      textAlign: 'center',
+                      minWidth: 58,
+                      boxShadow: '0 10px 24px rgba(26,18,8,0.16)',
+                    }}
+                  >
+                    <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 30, color: textColor, lineHeight: 1, fontWeight: '900' }}>
+                      {n.fecha}
                     </div>
-                  </Link>
-                </AnimatedSection>
-              )
-            })}
-          </div>
-        </div>
-      </section>
+                    <div style={{ fontFamily: "'Courier Prime', monospace", fontSize: 9, letterSpacing: 2, color: textColor, textTransform: 'uppercase', fontWeight: '900' }}>
+                      {n.mes}
+                    </div>
+                  </div>
+
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: 14,
+                      right: 14,
+                      fontFamily: "'Courier Prime', monospace",
+                      fontSize: 8,
+                      letterSpacing: 2,
+                      textTransform: 'uppercase',
+                      color: '#fff',
+                      background: 'rgba(26,18,8,0.68)',
+                      padding: '4px 9px',
+                      backdropFilter: 'blur(4px)',
+                      fontWeight: '700',
+                    }}
+                  >
+                    {n.tipo}
+                  </span>
+                </div>
+
+                <div
+                  style={{
+                    padding: '24px 22px 26px',
+                    background: n.color,
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    textAlign: 'center',
+                    minHeight: 230,
+                  }}
+                >
+                  <h3
+                    style={{
+                      fontFamily: "'Cormorant Garamond', serif",
+                      fontSize: 23,
+                      fontWeight: '900',
+                      color: textColor,
+                      lineHeight: 1.22,
+                      marginBottom: 10,
+                      textAlign: 'center',
+                    }}
+                  >
+                    {n.titulo}
+                  </h3>
+
+                  {n.descripcion && (
+                    <p
+                      style={{
+                        fontFamily: "'Cormorant Garamond', serif",
+                        fontSize: 17,
+                        lineHeight: 1.5,
+                        color: textColor,
+                        opacity: 0.92,
+                        marginBottom: 14,
+                        textAlign: 'center',
+                      }}
+                    >
+                      {n.descripcion.length > 110 ? n.descripcion.slice(0, 110) + '…' : n.descripcion}
+                    </p>
+                  )}
+
+                  <p
+                    style={{
+                      fontFamily: "'Courier Prime', monospace",
+                      fontSize: 11,
+                      color: textColor,
+                      letterSpacing: 1,
+                      marginTop: 'auto',
+                      marginBottom: 16,
+                      fontWeight: '900',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {n.lugar}
+                  </p>
+
+                  <span
+                    style={{
+                      fontFamily: "'Courier Prime', monospace",
+                      fontSize: 10,
+                      letterSpacing: 2,
+                      textTransform: 'uppercase',
+                      color: textColor,
+                      borderBottom: `1px solid ${textColor}`,
+                      fontWeight: '900',
+                      alignSelf: 'center',
+                    }}
+                  >
+                    Ver evento →
+                  </span>
+                </div>
+              </div>
+            </Link>
+          </AnimatedSection>
+        )
+      })}
+    </div>
+  </div>
+</section>
 
       {/* ═══════ CARRUSEL — LO ÚLTIMO DEL COLECTIVO ═══════ */}
       <section style={{ background: '#14110e', padding: '100px 40px', borderTop: '1px solid rgba(155,45,142,0.2)' }}>

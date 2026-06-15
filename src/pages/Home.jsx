@@ -397,28 +397,30 @@ const moverEventos = (direccion) => {
       </>
     )}
 
-    <div
-      ref={eventosCarouselRef}
-      style={{
-        display: 'flex',
-        gap: 24,
-        overflowX: eventosActivos.length > 4 ? 'auto' : 'visible',
-        scrollBehavior: 'smooth',
-        justifyContent: eventosActivos.length <= 3 ? 'center' : 'flex-start',
-        padding: '8px 4px 24px',
-        scrollbarWidth: 'none',
-      }}
-    >
+<div
+  ref={eventosCarouselRef}
+  className="eventos-home-track"
+  style={{
+    display: 'flex',
+    gap: 24,
+    overflowX: eventosActivos.length > 4 ? 'auto' : 'visible',
+    scrollBehavior: 'smooth',
+    justifyContent: eventosActivos.length <= 4 ? 'center' : 'flex-start',
+    padding: '8px 4px 24px',
+    scrollbarWidth: 'none',
+  }}
+>
       {eventosActivos.map((ev, i) => {
         const n = normalizarEvento(ev)
         const textColor = getTextColor(n.color)
 
         return (
-          <AnimatedSection key={n.id} direction="up" delay={i * 0.1} style={{ flex: '0 0 310px' }}>
+<AnimatedSection key={n.id} direction="up" delay={i * 0.1} className="evento-home-card-wrap" style={{ flex: '0 0 310px' }}>
             <Link to={`/eventos/${n.id}`} style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
-              <div
-                style={{
-                  background: '#fff',
+<div
+  className="evento-home-card"
+  style={{
+    background: '#fff',
                   border: `2px solid ${n.color}22`,
                   overflow: 'hidden',
                   transition: 'transform 0.3s, box-shadow 0.3s, border-color 0.3s',
@@ -438,9 +440,10 @@ const moverEventos = (direccion) => {
                   e.currentTarget.style.borderColor = n.color + '22'
                 }}
               >
-                <div
-                  style={{
-                    height: 210,
+<div
+  className="evento-home-img"
+  style={{
+    height: 210,
                     background: n.imagen_url ? '#efe7dc' : `linear-gradient(135deg, ${n.color}33 0%, ${n.color}10 100%)`,
                     position: 'relative',
                     overflow: 'hidden',
@@ -525,9 +528,10 @@ const moverEventos = (direccion) => {
                   </span>
                 </div>
 
-                <div
-                  style={{
-                    padding: '24px 22px 26px',
+<div
+  className="evento-home-info"
+  style={{
+    padding: '24px 22px 26px',
                     background: n.color,
                     flex: 1,
                     display: 'flex',
@@ -726,12 +730,102 @@ const moverEventos = (direccion) => {
         </div>
       </section>
 
-      <style>{`
-        @keyframes fadeInUp    { from { opacity: 0; transform: translateY(30px);  } to { opacity: 1; transform: translateY(0);  } }
-        @keyframes fadeInDown  { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0);  } }
-        @keyframes scrollLine  { 0%, 100% { transform: scaleY(1);   opacity: 1;   } 50% { transform: scaleY(0.6); opacity: 0.4; } }
-        @media (max-width: 768px) { section { padding-left: 20px !important; padding-right: 20px !important; } }
-      `}</style>
+<style>{`
+  @keyframes fadeInUp    { from { opacity: 0; transform: translateY(30px);  } to { opacity: 1; transform: translateY(0);  } }
+  @keyframes fadeInDown  { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0);  } }
+  @keyframes scrollLine  { 0%, 100% { transform: scaleY(1); opacity: 1; } 50% { transform: scaleY(0.6); opacity: 0.4; } }
+
+  .eventos-home-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (max-width: 1024px) {
+    .eventos-home-track {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 240px)) !important;
+      justify-content: center !important;
+      gap: 22px !important;
+      overflow-x: visible !important;
+      padding: 8px 0 24px !important;
+    }
+
+    .evento-home-card-wrap {
+      flex: unset !important;
+      width: 100% !important;
+    }
+
+    .evento-home-card {
+      aspect-ratio: auto !important;
+      min-height: auto !important;
+    }
+
+    .evento-home-img {
+      height: 150px !important;
+    }
+
+    .evento-home-info {
+      min-height: 190px !important;
+      padding: 20px 18px 22px !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    section {
+      padding-left: 20px !important;
+      padding-right: 20px !important;
+    }
+
+    .eventos-home-track {
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+      gap: 16px !important;
+      align-items: stretch !important;
+    }
+
+    .evento-home-img {
+      height: 120px !important;
+    }
+
+    .evento-home-info {
+      min-height: 160px !important;
+      padding: 16px 12px 18px !important;
+    }
+
+    .evento-home-info h3 {
+      font-size: 18px !important;
+      line-height: 1.15 !important;
+      margin-bottom: 8px !important;
+    }
+
+    .evento-home-info p {
+      font-size: 13px !important;
+      line-height: 1.35 !important;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .eventos-home-track {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 14px !important;
+    }
+
+    .evento-home-img {
+      height: 105px !important;
+    }
+
+    .evento-home-info {
+      min-height: 150px !important;
+      padding: 14px 10px 16px !important;
+    }
+
+    .evento-home-info h3 {
+      font-size: 16px !important;
+    }
+
+    .evento-home-info p {
+      font-size: 12px !important;
+    }
+  }
+`}</style>
     </main>
   )
 }

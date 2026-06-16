@@ -178,7 +178,7 @@ const filtrados = filtrarPorPeriodo(talleres, filtroPeriodo)
               {proximos.length > 0 && (
                 <>
                   <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 4, textTransform: 'uppercase', color: 'rgba(26,18,8,0.4)', marginBottom: 28 }}>Próximos talleres</p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24, marginBottom: 64 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24, marginBottom: 64, alignItems: 'stretch' }}>
                     {proximos.map((t, i) => <TallerCard key={t.id} t={t} i={i} />)}
                   </div>
                 </>

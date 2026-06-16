@@ -93,10 +93,10 @@ const getMes = (ev) =>
               {proximos.length > 0 && (
                 <>
                   {(filtro === 'Todos' || filtro === 'Próximos') && <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 4, textTransform: 'uppercase', color: 'rgba(26,18,8,0.4)', marginBottom: 28 }}>Próximos eventos</p>}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24, marginBottom: 64 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24, marginBottom: 64, alignItems: 'stretch' }}>
                     {proximos.map((ev, i) => (
                      <AnimatedSection key={ev.id} direction="up" delay={i * 0.08}>
-  <div style={{ background: '#fff', border: `2px solid ${ev.color || '#9B2D8E'}22`, overflow: 'hidden', transition: 'transform 0.3s, box-shadow 0.3s, border-color 0.3s' }}
+<div style={{ background: '#fff', border: `2px solid ${ev.color || '#9B2D8E'}22`, overflow: 'hidden', transition: 'transform 0.3s, box-shadow 0.3s, border-color 0.3s', height: '100%', minHeight: 560, display: 'flex', flexDirection: 'column' }}
     onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = '0 16px 48px rgba(26,18,8,0.1)'; e.currentTarget.style.borderColor = (ev.color || '#9B2D8E') + '66' }}
     onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = (ev.color || '#9B2D8E') + '22' }}
   >
@@ -167,10 +167,10 @@ const getMes = (ev) =>
 
     {/* CONTENIDO — siempre va al detalle del evento */}
     <Link to={`/eventos/${ev.id}`} style={{ textDecoration: 'none', display: 'block' }}>
-      <div style={{ padding: '28px 28px 32px', background: ev.color || '#9B2D8E' }}>
-        <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: '900', color: getTextColor(ev.color), lineHeight: 1.25, marginBottom: 10 }}>{ev.titulo}</h3>
-        <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, lineHeight: 1.6, color: getTextColor(ev.color), fontWeight: '700', marginBottom: 16 }}>{ev.descripcion}</p>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+<div style={{ padding: '28px 28px 32px', background: ev.color || '#9B2D8E', minHeight: 340, display: 'flex', flexDirection: 'column' }}>
+  <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: '900', color: getTextColor(ev.color), lineHeight: 1.25, marginBottom: 12, minHeight: 90, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{ev.titulo}</h3>
+  <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, lineHeight: 1.6, color: getTextColor(ev.color), fontWeight: '700', marginBottom: 16, minHeight: 145, display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{ev.descripcion}</p>
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginTop: 'auto' }}>
           <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 12, color: getTextColor(ev.color), letterSpacing: 1, fontWeight: '900' }}>{ev.lugar}</p>
           <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: getTextColor(ev.color), borderBottom: `1px solid ${getTextColor(ev.color)}`, fontWeight: '900' }}>Ver evento →</span>
         </div>

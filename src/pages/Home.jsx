@@ -609,109 +609,151 @@ const moverEventos = (direccion) => {
   </div>
 </section>
 
-      {/* ═══════ CARRUSEL — LO ÚLTIMO DEL COLECTIVO ═══════ */}
-      <section style={{ background: '#14110e', padding: '100px 40px', borderTop: '1px solid rgba(155,45,142,0.2)' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <AnimatedSection direction="up">
-            <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 4, textTransform: 'uppercase', color: '#9B2D8E', marginBottom: 8 }}>Noticias</p>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 40, flexWrap: 'wrap', gap: 16 }}>
-              <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 300, color: '#f5ede0' }}>Lo último del colectivo</h2>
-              <Link to="/noticias" style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(245,237,224,0.4)', borderBottom: '1px solid rgba(245,237,224,0.2)', paddingBottom: 2 }}>Ver todas →</Link>
-            </div>
-          </AnimatedSection>
+     {/* ═══════ ANUNCIOS Y COLABORADORES ═══════ */}
+<section className="anuncios-section">
+  <div className="anuncios-container">
+    <AnimatedSection direction="up">
+      <p className="anuncios-kicker">Anuncios</p>
 
-          <div style={{ position: 'relative', overflow: 'hidden' }}
-            onMouseEnter={() => setPausado(true)}
-            onMouseLeave={() => setPausado(false)}
-          >
-            {/* Track con transición CSS */}
-            <div style={{ display: 'flex', transform: `translateX(-${slide * 100}%)`, transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }}>
-{carruselItems.map((item, i) => {
-                if (item._tipo === 'noticia') {
-                  const n = item
-                  const color = n.color || '#8B1A1A'
-                  const href = n.link_url || '/noticias'
-                  const esExterno = !!n.link_url
-                  return (
-                    <a key={n.id || i}
-                      href={href}
-                      target={esExterno ? '_blank' : '_self'}
-                      rel={esExterno ? 'noopener noreferrer' : undefined}
-                      style={{ minWidth: '100%', textDecoration: 'none', display: 'block' }}
-                    >
-                      <div style={{ height: 'clamp(240px, 40vw, 400px)', background: `linear-gradient(135deg, ${color} 0%, ${color}99 100%)`, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '48px 60px', position: 'relative', overflow: 'hidden', cursor: 'pointer' }}>
-                        {n.imagen_url && (
-                          <>
-                            <img src={n.imagen_url} alt={n.titulo} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.35 }} />
-                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(26,18,8,0.88) 0%, rgba(26,18,8,0.4) 55%, rgba(26,18,8,0.1) 100%)' }} />
-                          </>
+      <div className="anuncios-header">
+        <h2>Anuncios y Colaboradores</h2>
+
+        <Link to="/noticias" className="anuncios-link">
+          Ver todas →
+        </Link>
+      </div>
+    </AnimatedSection>
+
+    <div
+      className="anuncios-carousel-wrap"
+      onMouseEnter={() => setPausado(true)}
+      onMouseLeave={() => setPausado(false)}
+    >
+      <div className="anuncios-carousel-viewport">
+        <div
+          className="anuncios-carousel-track"
+          style={{
+            transform: `translateX(-${slide * 100}%)`,
+          }}
+        >
+          {carruselItems.map((item, i) => {
+            if (item._tipo === 'noticia') {
+              const n = item
+              const color = n.color || '#8B1A1A'
+              const href = n.link_url || '/noticias'
+              const esExterno = !!n.link_url
+
+              return (
+                <a
+                  key={n.id || i}
+                  href={href}
+                  target={esExterno ? '_blank' : '_self'}
+                  rel={esExterno ? 'noopener noreferrer' : undefined}
+                  className="anuncios-slide-link"
+                >
+                  <div
+                    className="anuncios-slide"
+                    style={{
+                      background: `linear-gradient(135deg, ${color} 0%, ${color}99 100%)`,
+                    }}
+                  >
+                    {n.imagen_url && (
+                      <>
+                        <img src={n.imagen_url} alt={n.titulo} className="anuncios-slide-img" />
+                        <div className="anuncios-slide-overlay" />
+                      </>
+                    )}
+
+                    <div className="anuncios-bg-text">NADIE NOS LEE</div>
+
+                    <div className="anuncios-content">
+                      <div className="anuncios-meta-row">
+                        <span className="anuncios-pill">{n.categoria || 'Noticia'}</span>
+
+                        {n.fecha_publicacion && (
+                          <span className="anuncios-date">
+                            {new Date(n.fecha_publicacion).toLocaleDateString('es-MX', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
+                          </span>
                         )}
-                        <div style={{ position: 'absolute', right: -20, top: '50%', transform: 'translateY(-50%)', fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(80px, 20vw, 220px)', color: 'rgba(255,255,255,0.04)', lineHeight: 1, userSelect: 'none', letterSpacing: 4, whiteSpace: 'nowrap' }}>NADIE NOS LEE</div>
-                        <div style={{ position: 'relative', zIndex: 1 }}>
-                          <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
-                            <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: '#fff', background: 'rgba(255,255,255,0.18)', padding: '4px 12px', backdropFilter: 'blur(4px)' }}>{n.categoria || 'Noticia'}</span>
-                            {n.fecha_publicacion && (
-                              <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 1, color: 'rgba(255,255,255,0.55)' }}>
-                                {new Date(n.fecha_publicacion).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}
-                              </span>
-                            )}
-                          </div>
-                          <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(32px, 5vw, 68px)', letterSpacing: 3, color: '#fff', lineHeight: 1, marginBottom: 16 }}>{n.titulo}</h3>
-                          {n.cuerpo && (
-                            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 19, fontStyle: 'italic', color: 'rgba(255,255,255,0.78)', maxWidth: 580, lineHeight: 1.6 }}>
-                              {n.cuerpo.length > 140 ? n.cuerpo.slice(0, 140) + '...' : n.cuerpo}
-                            </p>
-                          )}
-                        </div>
                       </div>
-                    </a>
-                  )
-                } else {
-                  const b = item
-                  const href      = b.link_url || b.link || '/noticias'
-                  const esExterno = b.link_tipo === 'externo'
-                  const grad      = b.gradiente || `linear-gradient(135deg, ${b.color || '#9B2D8E'} 0%, ${(b.color || '#9B2D8E')}aa 100%)`
-                  return (
-                    <Link key={b.id || i} to={esExterno ? '#' : href}
-                      onClick={esExterno ? e => { e.preventDefault(); window.open(href, '_blank') } : undefined}
-                      style={{ minWidth: '100%', textDecoration: 'none', display: 'block' }}
-                    >
-                      <div style={{ height: 'clamp(240px, 40vw, 400px)', background: grad, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '48px 60px', position: 'relative', overflow: 'hidden', cursor: 'pointer' }}>
-                        {b.imagen_url && <img src={b.imagen_url} alt={b.titulo} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.25 }} />}
-                        <div style={{ position: 'absolute', right: -20, top: '50%', transform: 'translateY(-50%)', fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(80px, 20vw, 220px)', color: 'rgba(255,255,255,0.06)', lineHeight: 1, userSelect: 'none', letterSpacing: 4, whiteSpace: 'nowrap' }}>NADIE NOS LEE</div>
-                        <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', marginBottom: 16 }}>Nadie Nos Lee — Colectivo</p>
-                        <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(40px, 7vw, 80px)', letterSpacing: 4, color: '#fff', lineHeight: 0.95, marginBottom: 20 }}>{b.titulo}</h3>
-                        <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontStyle: 'italic', color: 'rgba(255,255,255,0.75)', maxWidth: 560 }}>{b.subtitulo}</p>
-                      </div>
-                    </Link>
-                  )
-                }
-              })}
-            </div>
 
-            {/* Flechas — solo si hay más de 1 */}
-            {carruselItems.length > 1 && (
-              <>
-                <button onClick={prevSlide} style={{ position: 'absolute', left: 20, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', width: 48, height: 48, cursor: 'pointer', fontSize: 20, backdropFilter: 'blur(4px)', transition: 'background 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
-                  onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-                >‹</button>
-                <button onClick={nextSlide} style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', width: 48, height: 48, cursor: 'pointer', fontSize: 20, backdropFilter: 'blur(4px)', transition: 'background 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
-                  onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-                >›</button>
+                      <h3>{n.titulo}</h3>
 
-                {/* Dots */}
-                <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 24 }}>
-                  {carruselItems.map((_, i) => (
-                    <button key={i} onClick={() => setSlide(i)} style={{ width: i === slide ? 28 : 10, height: 10, borderRadius: 5, background: i === slide ? '#9B2D8E' : 'rgba(245,237,224,0.25)', border: 'none', cursor: 'pointer', transition: 'width 0.3s ease, background 0.3s ease', padding: 0 }} />
-                  ))}
+                      {n.cuerpo && (
+                        <p>
+                          {n.cuerpo.length > 140 ? n.cuerpo.slice(0, 140) + '...' : n.cuerpo}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </a>
+              )
+            }
+
+            const b = item
+            const href = b.link_url || b.link || '/noticias'
+            const esExterno = b.link_tipo === 'externo'
+            const grad = b.gradiente || `linear-gradient(135deg, ${b.color || '#9B2D8E'} 0%, ${(b.color || '#9B2D8E')}aa 100%)`
+
+            return (
+              <Link
+                key={b.id || i}
+                to={esExterno ? '#' : href}
+                onClick={esExterno ? e => { e.preventDefault(); window.open(href, '_blank') } : undefined}
+                className="anuncios-slide-link"
+              >
+                <div
+                  className="anuncios-slide"
+                  style={{ background: grad }}
+                >
+                  {b.imagen_url && (
+                    <img src={b.imagen_url} alt={b.titulo} className="anuncios-slide-img banner" />
+                  )}
+
+                  <div className="anuncios-bg-text">NADIE NOS LEE</div>
+
+                  <div className="anuncios-content">
+                    <p className="anuncios-eyebrow">Colectivo</p>
+                    <h3>{b.titulo}</h3>
+                    <p>{b.subtitulo}</p>
+                  </div>
                 </div>
-              </>
-            )}
-          </div>
+              </Link>
+            )
+          })}
         </div>
-      </section>
+      </div>
+
+      {carruselItems.length > 1 && (
+        <>
+          <div className="anuncios-controls">
+            <button onClick={prevSlide} className="anuncios-arrow">
+              ‹
+            </button>
+
+            <button onClick={nextSlide} className="anuncios-arrow">
+              ›
+            </button>
+          </div>
+
+          <div className="anuncios-dots">
+            {carruselItems.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setSlide(i)}
+                className={i === slide ? 'active' : ''}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  </div>
+</section>
 
       {/* ═══════ MANIFIESTO PREVIEW ═══════ */}
       <section style={{ background: '#9B2D8E', padding: '100px 40px', textAlign: 'center' }}>
@@ -734,7 +776,333 @@ const moverEventos = (direccion) => {
   @keyframes fadeInUp    { from { opacity: 0; transform: translateY(30px);  } to { opacity: 1; transform: translateY(0);  } }
   @keyframes fadeInDown  { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0);  } }
   @keyframes scrollLine  { 0%, 100% { transform: scaleY(1); opacity: 1; } 50% { transform: scaleY(0.6); opacity: 0.4; } }
+  .anuncios-section {
+    background: #14110e;
+    padding: 100px 40px;
+    border-top: 1px solid rgba(155,45,142,0.2);
+  }
 
+  .anuncios-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .anuncios-kicker {
+    font-family: 'Courier Prime', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #9B2D8E;
+    margin-bottom: 8px;
+  }
+
+  .anuncios-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .anuncios-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(34px, 4.6vw, 58px);
+    font-weight: 300;
+    color: #f5ede0;
+    line-height: 1;
+    margin: 0;
+  }
+
+  .anuncios-link {
+    font-family: 'Courier Prime', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(245,237,224,0.45);
+    border-bottom: 1px solid rgba(245,237,224,0.2);
+    padding-bottom: 2px;
+  }
+
+  .anuncios-carousel-wrap {
+    position: relative;
+  }
+
+  .anuncios-carousel-viewport {
+    overflow: hidden;
+  }
+
+  .anuncios-carousel-track {
+    display: flex;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .anuncios-slide-link {
+    min-width: 100%;
+    text-decoration: none;
+    display: block;
+  }
+
+  .anuncios-slide {
+    height: clamp(300px, 40vw, 400px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 48px 60px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .anuncios-slide-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.35;
+  }
+
+  .anuncios-slide-img.banner {
+    opacity: 0.25;
+  }
+
+  .anuncios-slide-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(26,18,8,0.88) 0%, rgba(26,18,8,0.4) 55%, rgba(26,18,8,0.1) 100%);
+  }
+
+  .anuncios-bg-text {
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(80px, 20vw, 220px);
+    color: rgba(255,255,255,0.06);
+    line-height: 1;
+    user-select: none;
+    letter-spacing: 4px;
+    white-space: nowrap;
+  }
+
+  .anuncios-content {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+  }
+
+  .anuncios-meta-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .anuncios-pill {
+    font-family: 'Courier Prime', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #fff;
+    background: rgba(255,255,255,0.18);
+    padding: 4px 12px;
+    backdrop-filter: blur(4px);
+  }
+
+  .anuncios-date {
+    font-family: 'Courier Prime', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,0.55);
+  }
+
+  .anuncios-eyebrow {
+    font-family: 'Courier Prime', monospace !important;
+    font-size: 11px !important;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.65) !important;
+    margin-bottom: 16px !important;
+  }
+
+  .anuncios-content h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 7vw, 80px);
+    letter-spacing: 4px;
+    color: #fff;
+    line-height: 0.95;
+    margin: 0 0 20px;
+    max-width: 850px;
+  }
+
+  .anuncios-content p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-style: italic;
+    color: rgba(255,255,255,0.78);
+    max-width: 620px;
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  .anuncios-controls {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .anuncios-arrow {
+    width: 52px;
+    height: 44px;
+    border: 1px solid rgba(245,237,224,0.14);
+    background: rgba(245,237,224,0.06);
+    color: #f5ede0;
+    cursor: pointer;
+    font-size: 24px;
+    backdrop-filter: blur(4px);
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .anuncios-arrow:hover {
+    background: rgba(245,237,224,0.12);
+    border-color: rgba(245,237,224,0.28);
+  }
+
+  .anuncios-dots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  .anuncios-dots button {
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background: rgba(245,237,224,0.25);
+    border: none;
+    cursor: pointer;
+    transition: width 0.3s ease, background 0.3s ease;
+    padding: 0;
+  }
+
+  .anuncios-dots button.active {
+    width: 28px;
+    background: #9B2D8E;
+  }
+
+  @media (max-width: 900px) {
+    .anuncios-section {
+      padding: 80px 24px;
+    }
+
+    .anuncios-header {
+      align-items: flex-start;
+      margin-bottom: 32px;
+    }
+
+    .anuncios-header h2 {
+      font-size: clamp(36px, 8vw, 52px);
+    }
+
+    .anuncios-slide {
+      height: auto;
+      min-height: 360px;
+      padding: 42px 34px;
+      justify-content: center;
+    }
+
+    .anuncios-content h3 {
+      font-size: clamp(42px, 11vw, 64px);
+      line-height: 0.98;
+      letter-spacing: 2px;
+    }
+
+    .anuncios-content p {
+      font-size: 19px;
+      line-height: 1.45;
+    }
+
+    .anuncios-bg-text {
+      font-size: 140px;
+      right: -80px;
+      opacity: 0.7;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .anuncios-section {
+      padding: 72px 24px;
+    }
+
+    .anuncios-kicker {
+      font-size: 10px;
+      letter-spacing: 4px;
+    }
+
+    .anuncios-header {
+      display: block;
+    }
+
+    .anuncios-header h2 {
+      font-size: 40px;
+      line-height: 1.02;
+      margin-bottom: 22px;
+    }
+
+    .anuncios-slide {
+      min-height: 330px;
+      padding: 36px 26px;
+      justify-content: center;
+    }
+
+    .anuncios-content {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .anuncios-content h3 {
+      font-size: clamp(32px, 10.5vw, 46px);
+      line-height: 1.05;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+      max-width: 100%;
+      word-break: keep-all;
+      overflow-wrap: normal;
+      hyphens: none;
+      text-wrap: balance;
+    }
+
+    .anuncios-content p {
+      font-size: 18px;
+      line-height: 1.4;
+      max-width: 100%;
+    }
+
+    .anuncios-eyebrow {
+      font-size: 10px !important;
+      letter-spacing: 3px;
+      margin-bottom: 12px !important;
+    }
+
+    .anuncios-bg-text {
+      font-size: 110px;
+      right: -95px;
+    }
+
+    .anuncios-controls {
+      margin-top: 14px;
+    }
+
+    .anuncios-arrow {
+      width: 48px;
+      height: 42px;
+    }
+  }
   .eventos-home-track::-webkit-scrollbar {
     display: none;
   }

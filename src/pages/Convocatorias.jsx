@@ -226,7 +226,7 @@ const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
               <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontStyle: 'italic', color: 'rgba(26,18,8,0.3)' }}>No hay convocatorias en esta categoría.</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24, alignItems: 'stretch' }}>
               {filtradas.map((c, i) => {
                 const color = c.color || '#8B1A1A'
                 const est = ESTADO_CONFIG[c.estado] || ESTADO_CONFIG['Cerrada']
@@ -235,11 +235,11 @@ const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
                 const urgente = dias !== null && dias <= 7 && dias >= 0
 return (
                   <AnimatedSection key={c.id} direction="up" delay={i * 0.08}>
-                    <Link to={`/convocatorias/${c.id}`} style={{ textDecoration: 'none', display: 'block' }}>
-                      <div style={{ background: '#fff', border: `2px solid ${color}22`, overflow: 'hidden', transition: 'transform 0.3s, box-shadow 0.3s, border-color 0.3s' }}
-                        onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = '0 16px 48px rgba(26,18,8,0.1)'; e.currentTarget.style.borderColor = color + '66' }}
-                        onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = color + '22' }}
-                      >
+<Link to={`/convocatorias/${c.id}`} style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
+  <div style={{ border: `2px solid ${color}22`, overflow: 'hidden', transition: 'transform 0.3s, box-shadow 0.3s, border-color 0.3s', height: '100%', display: 'flex', flexDirection: 'column' }}
+    onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = '0 16px 48px rgba(26,18,8,0.1)'; e.currentTarget.style.borderColor = color + '66' }}
+    onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = color + '22' }}
+  >
                         {/* IMAGEN / BANNER */}
                         <div style={{
                           height: 220,
@@ -271,20 +271,20 @@ return (
                           )}
                         </div>
 
-                        {/* INFO CARD */}
-                        <div style={{ padding: '24px 26px 20px', background: color }}>
-                          {c.fecha_cierre && (
-                            <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, color: getTextColor(color) === '#fff' ? 'rgba(255,255,255,0.65)' : 'rgba(26,18,8,0.55)', letterSpacing: 1, marginBottom: 8 }}>
-                              Cierre: {parseFecha(c.fecha_cierre)?.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </p>
-                          )}
-                          <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 700, color: getTextColor(color), lineHeight: 1.2, marginBottom: 10 }}>{c.titulo}</h3>
-                          {c.descripcion && (
-                            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 17, lineHeight: 1.6, color: getTextColor(color) === '#fff' ? 'rgba(255,255,255,0.8)' : 'rgba(26,18,8,0.7)', marginBottom: 12 }}>
-                              {c.descripcion.length > 100 ? c.descripcion.slice(0, 100) + '...' : c.descripcion}
-                            </p>
-                          )}
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+{/* INFO CARD */}
+<div style={{ padding: '24px 26px 24px', background: color, flex: 1, display: 'flex', flexDirection: 'column' }}>
+  {c.fecha_cierre && (
+    <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, color: getTextColor(color) === '#fff' ? 'rgba(255,255,255,0.65)' : 'rgba(26,18,8,0.55)', letterSpacing: 1, marginBottom: 8 }}>
+      Cierre: {parseFecha(c.fecha_cierre)?.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
+    </p>
+  )}
+  <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 700, color: getTextColor(color), lineHeight: 1.2, marginBottom: 10, minHeight: 88, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{c.titulo}</h3>
+  {c.descripcion && (
+    <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 17, lineHeight: 1.6, color: getTextColor(color) === '#fff' ? 'rgba(255,255,255,0.8)' : 'rgba(26,18,8,0.7)', marginBottom: 12, minHeight: 110, display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+      {c.descripcion.length > 100 ? c.descripcion.slice(0, 100) + '...' : c.descripcion}
+    </p>
+  )}
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
                             {c.link_url && (
                               <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, color: getTextColor(color) === '#fff' ? 'rgba(255,255,255,0.7)' : 'rgba(26,18,8,0.5)', letterSpacing: 1, textTransform: 'uppercase', fontWeight: '700' }}>Ver post →</span>
                             )}

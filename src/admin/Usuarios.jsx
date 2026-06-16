@@ -169,32 +169,44 @@ const crearUsuario = async () => {
   }
 
 const resetearPass = async (usuario) => {
-    if (!usuario.user_id) {
-      mostrarFeedback('Este usuario no tiene acceso Auth vinculado', 'error')
-      return
-    }
-    const nuevaPass = generarPassword()
-
-    // Actualizar en Auth
-    const { data, error: authError } = await supabase.functions.invoke('admin-users', {
-      body: { action: 'resetPass', userId: usuario.user_id, newPassword: nuevaPass },
-    })
-    if (authError || data?.error) {
-      mostrarFeedback(`Error al resetear: ${data?.error || authError.message}`, 'error')
-      return
-    }
-
-    // Marcar cambio pendiente en perfil
-    const { error: perfilError } = await supabase
-      .from('perfiles')
-      .update({ debe_cambiar_pass: true, pass_temporal: nuevaPass })
-      .eq('id', usuario.id)
-
-    if (!perfilError) {
-      cargarUsuarios()
-      mostrarFeedback(`Contraseña restablecida para ${usuario.nombre}: ${nuevaPass}`)
-    }
+  if (!usuario.user_id) {
+    mostrarFeedback('Este usuario no tiene acceso Auth vinculado', 'error')
+    return
   }
+
+  const nuevaPass = generarPassword()
+
+  const { data, error } = await supabase.functions.invoke('admin-users', {
+    body: {
+      action: 'reset_password',
+      user_id: usuario.user_id,
+      password: nuevaPass,
+    },
+  })
+
+  console.log('RESET PASS RESPONSE:', { data, error })
+
+  if (error || data?.error) {
+    mostrarFeedback(`Error al resetear: ${data?.error || error?.message || 'Error desconocido'}`, 'error')
+    return
+  }
+
+  const { error: perfilError } = await supabase
+    .from('perfiles')
+    .update({
+      debe_cambiar_pass: true,
+      pass_temporal: nuevaPass,
+    })
+    .eq('id', usuario.id)
+
+  if (perfilError) {
+    mostrarFeedback(`Auth actualizado, pero falló perfil: ${perfilError.message}`, 'error')
+    return
+  }
+
+  cargarUsuarios()
+  mostrarFeedback(`Contraseña restablecida para ${usuario.nombre}: ${nuevaPass}`)
+}
 
   const hacerAdmin = async (usuario) => {
     const nuevoRol = usuario.rol === 'admin' ? 'editor' : 'admin'

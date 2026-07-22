@@ -106,46 +106,137 @@ const [paginaEscritura, setPaginaEscritura] = useState(0)
 
   // Cargar datos Supabase
 useEffect(() => {
-    const cargar = async () => {
-      const { data: e } = await supabase.from('escrituras').select('*').eq('publicado', true).order('created_at', { ascending: false }).limit(1)
-      if (e?.[0]) setEscritura(e[0])
-
-      const { data: b } = await supabase.from('banners').select('*').eq('activo', true).order('orden', { ascending: true })
-      if (b?.length) setBanners(b)
-
-const { data: ev } = await supabase.from('eventos').select('*').eq('publicado', true).eq('estado', 'Próximo').order('fecha', { ascending: true }).limit(12)
-      if (ev?.length) setEventos(ev)
-
-      // Noticias publicadas en los últimos 7 días
-      const hace7dias = new Date()
-      hace7dias.setDate(hace7dias.getDate() - 7)
-      const { data: ns } = await supabase
-        .from('noticias')
+  const cargar = async () => {
+    const [
+      { data: escriturasData },
+      { data: bannersData },
+      { data: eventosData },
+    ] = await Promise.all([
+      supabase
+        .from('escrituras')
         .select('*')
         .eq('publicado', true)
-        .gte('fecha_publicacion', hace7dias.toISOString().split('T')[0])
-        .order('fecha_publicacion', { ascending: false })
-        .limit(5)
-      if (ns?.length) setNoticiasSemana(ns)
-    }
-    cargar()
+        .order('created_at', { ascending: false })
+        .limit(1),
 
-    const ch1 = supabase.channel('home-e').on('postgres_changes', { event: '*', schema: 'public', table: 'escrituras' }, cargar).subscribe()
-    const ch2 = supabase.channel('home-b').on('postgres_changes', { event: '*', schema: 'public', table: 'banners' }, cargar).subscribe()
-    const ch3 = supabase.channel('home-ev').on('postgres_changes', { event: '*', schema: 'public', table: 'eventos' }, cargar).subscribe()
-    const ch4 = supabase.channel('home-ns').on('postgres_changes', { event: '*', schema: 'public', table: 'noticias' }, cargar).subscribe()
-    return () => { supabase.removeChannel(ch1); supabase.removeChannel(ch2); supabase.removeChannel(ch3); supabase.removeChannel(ch4) }
-  }, [])
+      supabase
+        .from('banners')
+        .select('*')
+        .eq('activo', true)
+        .order('orden', { ascending: true }),
 
-// Datos activos con fallback
-  const escrituraActiva    = escritura || ESCRITURA_FB
-  const bannersActivos     = banners.length  ? banners  : BANNERS_FB
-  const eventosActivos     = eventos.length  ? eventos  : EVENTOS_FB
-// Carrusel: noticias + banners mezclados
-  const carruselItems     = [
-    ...noticiasSemana.map(n => ({ ...n, _tipo: 'noticia' })),
-    ...bannersActivos.map(b => ({ ...b, _tipo: 'banner' })),
-  ]
+      supabase
+        .from('eventos')
+        .select('*')
+        .eq('publicado', true)
+        .eq('estado', 'Próximo')
+        .order('fecha', { ascending: true })
+        .limit(12),
+    ])
+
+    setEscritura(escriturasData?.[0] || null)
+    setBanners(bannersData || [])
+    setEventos(eventosData || [])
+
+    // Noticias publicadas durante los últimos siete días.
+    const hace7dias = new Date()
+    hace7dias.setDate(hace7dias.getDate() - 7)
+
+    const { data: noticiasData } = await supabase
+      .from('noticias')
+      .select('*')
+      .eq('publicado', true)
+      .gte(
+        'fecha_publicacion',
+        hace7dias.toISOString().split('T')[0]
+      )
+      .order('fecha_publicacion', {
+        ascending: false,
+      })
+      .limit(5)
+
+    setNoticiasSemana(noticiasData || [])
+  }
+
+  cargar()
+
+  const ch1 = supabase
+    .channel('home-e')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'escrituras',
+      },
+      cargar
+    )
+    .subscribe()
+
+  const ch2 = supabase
+    .channel('home-b')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'banners',
+      },
+      cargar
+    )
+    .subscribe()
+
+  const ch3 = supabase
+    .channel('home-ev')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'eventos',
+      },
+      cargar
+    )
+    .subscribe()
+
+  const ch4 = supabase
+    .channel('home-ns')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'noticias',
+      },
+      cargar
+    )
+    .subscribe()
+
+  return () => {
+    supabase.removeChannel(ch1)
+    supabase.removeChannel(ch2)
+    supabase.removeChannel(ch3)
+    supabase.removeChannel(ch4)
+  }
+}, [])
+
+// Datos reales cargados desde Supabase.
+const escrituraActiva = escritura || ESCRITURA_FB
+const bannersActivos = banners
+const eventosActivos = eventos
+
+// Carrusel de noticias y banners reales.
+const carruselItems = [
+  ...noticiasSemana.map(noticia => ({
+    ...noticia,
+    _tipo: 'noticia',
+  })),
+
+  ...bannersActivos.map(banner => ({
+    ...banner,
+    _tipo: 'banner',
+  })),
+]
 
   // Carrusel automático — usa bannersActivos.length directamente
 useEffect(() => {
@@ -403,14 +494,75 @@ const moverEventos = (direccion) => {
   style={{
     display: 'flex',
     gap: 24,
-    overflowX: eventosActivos.length > 4 ? 'auto' : 'visible',
+    overflowX:
+      eventosActivos.length > 4 ? 'auto' : 'visible',
     scrollBehavior: 'smooth',
-    justifyContent: eventosActivos.length <= 4 ? 'center' : 'flex-start',
+    justifyContent:
+      eventosActivos.length === 0
+        ? 'center'
+        : eventosActivos.length <= 4
+          ? 'center'
+          : 'flex-start',
     padding: '8px 4px 24px',
     scrollbarWidth: 'none',
   }}
 >
-      {eventosActivos.map((ev, i) => {
+  {eventosActivos.length === 0 ? (
+    <div
+      style={{
+        width: '100%',
+        minHeight: 260,
+        padding: '60px 24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        background: 'rgba(255,255,255,0.45)',
+        border: '1px solid rgba(26,18,8,0.08)',
+      }}
+    >
+      <div style={{ maxWidth: 540 }}>
+        <p
+          style={{
+            fontFamily: "'Courier Prime', monospace",
+            fontSize: 10,
+            letterSpacing: 3,
+            textTransform: 'uppercase',
+            color: '#3AABDC',
+            fontWeight: '700',
+            marginBottom: 16,
+          }}
+        >
+          Próximamente
+        </p>
+
+        <h3
+          style={{
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: 32,
+            fontWeight: 400,
+            color: '#1a1208',
+            marginBottom: 12,
+          }}
+        >
+          Por ahora no hay eventos ni talleres
+        </h3>
+
+        <p
+          style={{
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: 20,
+            fontStyle: 'italic',
+            lineHeight: 1.65,
+            color: 'rgba(26,18,8,0.5)',
+          }}
+        >
+          Mantente al pendiente de nuevas actividades y
+          actualizaciones del colectivo.
+        </p>
+      </div>
+    </div>
+  ) : eventosActivos.map((ev, i) => {
         const n = normalizarEvento(ev)
         const textColor = getTextColor(n.color)
 
@@ -624,11 +776,67 @@ const moverEventos = (direccion) => {
       </div>
     </AnimatedSection>
 
+<div
+  className="anuncios-carousel-wrap"
+  onMouseEnter={() => setPausado(true)}
+  onMouseLeave={() => setPausado(false)}
+>
+  {carruselItems.length === 0 ? (
     <div
-      className="anuncios-carousel-wrap"
-      onMouseEnter={() => setPausado(true)}
-      onMouseLeave={() => setPausado(false)}
+      style={{
+        minHeight: 340,
+        padding: '60px 24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        background: 'rgba(26,18,8,0.025)',
+        border: '1px solid rgba(26,18,8,0.08)',
+      }}
     >
+      <div style={{ maxWidth: 560 }}>
+        <p
+          style={{
+            fontFamily: "'Courier Prime', monospace",
+            fontSize: 10,
+            letterSpacing: 3,
+            textTransform: 'uppercase',
+            color: '#9B2D8E',
+            fontWeight: '700',
+            marginBottom: 16,
+          }}
+        >
+          Próximamente
+        </p>
+
+<h3
+  style={{
+    fontFamily: "'Cormorant Garamond', serif",
+    fontSize: 34,
+    fontWeight: 400,
+    color: '#1a1208',
+    marginBottom: 14,
+  }}
+>
+  Por ahora no hay noticias ni talleres
+</h3>
+
+<p
+  style={{
+    fontFamily: "'Cormorant Garamond', serif",
+    fontSize: 20,
+    fontStyle: 'italic',
+    lineHeight: 1.65,
+    color: 'rgba(26,18,8,0.5)',
+  }}
+>
+  Mantente al pendiente de nuevas publicaciones,
+  actividades y actualizaciones del colectivo.
+</p>
+      </div>
+    </div>
+  ) : (
+    <>
       <div className="anuncios-carousel-viewport">
         <div
           className="anuncios-carousel-track"
@@ -731,11 +939,17 @@ const moverEventos = (direccion) => {
       {carruselItems.length > 1 && (
         <>
           <div className="anuncios-controls">
-            <button onClick={prevSlide} className="anuncios-arrow">
+            <button
+              onClick={prevSlide}
+              className="anuncios-arrow"
+            >
               ‹
             </button>
 
-            <button onClick={nextSlide} className="anuncios-arrow">
+            <button
+              onClick={nextSlide}
+              className="anuncios-arrow"
+            >
               ›
             </button>
           </div>
@@ -751,7 +965,9 @@ const moverEventos = (direccion) => {
           </div>
         </>
       )}
-    </div>
+    </>
+  )}
+</div>
   </div>
 </section>
 

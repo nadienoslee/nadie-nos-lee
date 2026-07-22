@@ -1284,15 +1284,54 @@ const cargarNotificaciones = async () => {
       setGenerosDist(Object.entries(gMap).map(([label, value], i) => ({ id: i, value, label, color: cols[i % cols.length] })))
     }
 
-    const { data: inscripciones } = await supabase.from('inscripciones').select('*, talleres(titulo)').order('created_at', { ascending: false })
-    if (inscripciones) {
-      setStats(prev => ({ ...prev, inscripciones: inscripciones.length }))
-      setInscripcionesList(inscripciones.slice(0, 10))
-      const porMes = {}
-      inscripciones.forEach(i => { const mes = new Date(i.created_at).toLocaleDateString('es-MX', { month: 'short', year: '2-digit' }); porMes[mes] = (porMes[mes] || 0) + 1 })
-      const u6 = Object.entries(porMes).slice(-6)
-      setInscripcionesPorMes({ etiquetas: u6.map(([k]) => k), datos: u6.map(([, v]) => v) })
-    }
+const { data: inscripciones, error: errorInscripciones } = await supabase
+  .from('inscripciones')
+  .select(`
+    *,
+    talleres (
+      id,
+      titulo,
+      cupo_tipo,
+      cupo_total,
+      cupo_disponible
+    )
+  `)
+  .order('created_at', { ascending: false })
+
+if (errorInscripciones) {
+  console.error('Error cargando inscripciones:', errorInscripciones)
+}
+
+if (inscripciones) {
+  setStats(prev => ({
+    ...prev,
+    inscripciones: inscripciones.length,
+  }))
+
+  // Guardamos todas las inscripciones, sin limitar a 10.
+  setInscripcionesList(inscripciones)
+
+  const porMes = {}
+
+  inscripciones.forEach(inscripcion => {
+    const mes = new Date(inscripcion.created_at).toLocaleDateString(
+      'es-MX',
+      {
+        month: 'short',
+        year: '2-digit',
+      }
+    )
+
+    porMes[mes] = (porMes[mes] || 0) + 1
+  })
+
+  const u6 = Object.entries(porMes).slice(-6)
+
+  setInscripcionesPorMes({
+    etiquetas: u6.map(([mes]) => mes),
+    datos: u6.map(([, cantidad]) => cantidad),
+  })
+}
 
     const { count } = await supabase.from('convocatorias').select('*', { count: 'exact', head: true }).eq('estado', 'Abierta')
     if (count !== null) setStats(prev => ({ ...prev, convocatorias: count }))
@@ -1307,7 +1346,12 @@ const marcarTodasLeidas = () => {
     return actualizadas
   })
 }
-const registrarAccion = async (accion, seccion, descripcion, afecta_a = null) => {
+const registrarAccion = async (
+  accion,
+  seccion,
+  descripcion,
+  afecta_a = null
+) => {
   const { data: perfilActual } = await supabase
     .from('perfiles')
     .select('id, user_id, nombre, username, email, foto_url')
@@ -1325,6 +1369,120 @@ const registrarAccion = async (accion, seccion, descripcion, afecta_a = null) =>
   })
 
   agregarNotif(accion, descripcion)
+}
+
+const cambiarEstadoInscripcion = async (
+  inscripcion,
+  nuevoEstado
+) => {
+  if (!inscripcion?.id) return
+
+  const estadoAnterior =
+    inscripcion.estado === 'Confirmada'
+      ? 'Confirmado'
+      : inscripcion.estado || 'Pendiente'
+
+  if (estadoAnterior === nuevoEstado) return
+
+  const taller = inscripcion.talleres
+
+  const { error: errorEstado } = await supabase
+    .from('inscripciones')
+    .update({
+      estado: nuevoEstado,
+    })
+    .eq('id', inscripcion.id)
+
+  if (errorEstado) {
+    setAlertaGeneral({
+      tipo: 'error',
+      titulo: 'No se pudo actualizar',
+      mensaje: errorEstado.message,
+      botonTexto: 'Entendido',
+    })
+
+    return
+  }
+
+  /*
+   * Cuando alguien se inscribe, TallerDetalle ya descuenta un lugar.
+   * Por eso, al cancelar recuperamos ese lugar.
+   * Si una inscripción cancelada vuelve a Pendiente o Confirmado,
+   * volvemos a descontarlo.
+   */
+  if (
+    taller?.id &&
+    taller.cupo_tipo === 'limitado' &&
+    taller.cupo_disponible !== null
+  ) {
+    let nuevoCupoDisponible = Number(
+      taller.cupo_disponible
+    )
+
+    if (
+      estadoAnterior !== 'Cancelado' &&
+      nuevoEstado === 'Cancelado'
+    ) {
+      nuevoCupoDisponible = Math.min(
+        Number(taller.cupo_total || nuevoCupoDisponible + 1),
+        nuevoCupoDisponible + 1
+      )
+    }
+
+    if (
+      estadoAnterior === 'Cancelado' &&
+      nuevoEstado !== 'Cancelado'
+    ) {
+      nuevoCupoDisponible = Math.max(
+        0,
+        nuevoCupoDisponible - 1
+      )
+    }
+
+    if (
+      nuevoCupoDisponible !==
+      Number(taller.cupo_disponible)
+    ) {
+      const { error: errorCupo } = await supabase
+        .from('talleres')
+        .update({
+          cupo_disponible: nuevoCupoDisponible,
+        })
+        .eq('id', taller.id)
+
+      if (errorCupo) {
+        console.error(
+          'El estado cambió, pero no se pudo actualizar el cupo:',
+          errorCupo
+        )
+      }
+    }
+  }
+
+  await registrarAccion(
+    'edicion',
+    'inscripciones',
+    `Cambió la inscripción de ${inscripcion.nombre} de ${estadoAnterior} a ${nuevoEstado}`,
+    inscripcion.nombre
+  )
+
+  setAlertaGeneral({
+    tipo:
+      nuevoEstado === 'Confirmado'
+        ? 'exito'
+        : 'advertencia',
+    titulo:
+      nuevoEstado === 'Confirmado'
+        ? 'Inscripción confirmada'
+        : nuevoEstado === 'Cancelado'
+          ? 'Inscripción cancelada'
+          : 'Inscripción pendiente',
+    mensaje: `${inscripcion.nombre} ahora aparece como ${nuevoEstado.toLowerCase()}.`,
+    botonTexto: 'Aceptar',
+    autoclose: 2500,
+  })
+
+  await cargarDatos()
 }
 
   const colorNotif = (t) => getActionMeta(t).color
@@ -1570,38 +1728,389 @@ case 'escritura': return (
   />
 )
 
-      case 'inscripciones': return (
+case 'inscripciones':
+  return (
+    <div>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+          gap: 16,
+          flexWrap: 'wrap',
+          marginBottom: 24,
+        }}
+      >
         <div>
-          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 34, fontWeight: 400, color: C.ink, marginBottom: 24 }}>Inscripciones a talleres</h2>
-          {inscripcionesList.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 0', background: '#fff', border: '1px solid rgba(26,18,8,0.07)', borderRadius: 10 }}>
-              <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: 'rgba(26,18,8,0.35)', fontStyle: 'italic' }}>Sin inscripciones registradas</p>
-            </div>
-          ) : (
-            <div style={{ overflowX: 'auto', background: '#fff', border: '1px solid rgba(26,18,8,0.08)', borderRadius: 10 }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr>{['Nombre', 'Taller', 'Fecha', 'Estado'].map(h => <th key={h} style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(26,18,8,0.5)', padding: '15px 20px', textAlign: 'left', borderBottom: '1px solid rgba(26,18,8,0.08)', fontWeight: '700' }}>{h}</th>)}</tr>
-                </thead>
-                <tbody>
-                  {inscripcionesList.map((ins, i) => (
-                    <tr key={ins.id || i} style={{ borderBottom: '1px solid rgba(26,18,8,0.04)', transition: 'background 0.15s' }} onMouseOver={e => e.currentTarget.style.background = '#faf6ee'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
-                      <td style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: C.ink, padding: '16px 20px', fontWeight: '500' }}>{ins.nombre}</td>
-                      <td style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, color: 'rgba(26,18,8,0.6)', padding: '16px 20px', letterSpacing: 1, fontWeight: '600' }}>{ins.talleres?.titulo || '—'}</td>
-                      <td style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, color: 'rgba(26,18,8,0.5)', padding: '16px 20px', fontWeight: '600' }}>{new Date(ins.created_at).toLocaleDateString('es-MX')}</td>
-                      <td style={{ padding: '16px 20px' }}>
-                        <span style={{ fontFamily: "'Courier Prime', monospace", fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: ins.estado === 'Confirmada' ? C.green : ins.estado === 'Pendiente' ? C.gold : C.red, background: ins.estado === 'Confirmada' ? 'rgba(34,161,106,0.1)' : ins.estado === 'Pendiente' ? 'rgba(184,148,58,0.1)' : 'rgba(139,26,26,0.1)', padding: '5px 12px', borderRadius: 4, fontWeight: '700' }}>{ins.estado}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )
+          <h2
+            style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: 34,
+              fontWeight: 400,
+              color: C.ink,
+              marginBottom: 6,
+            }}
+          >
+            Inscripciones a talleres
+          </h2>
 
-     case 'envios': return <SeccionEnvios />
+          <p
+            style={{
+              fontFamily: "'Courier Prime', monospace",
+              fontSize: 10,
+              letterSpacing: 2,
+              textTransform: 'uppercase',
+              color: 'rgba(26,18,8,0.4)',
+              fontWeight: '700',
+            }}
+          >
+            {inscripcionesList.length}{' '}
+            {inscripcionesList.length === 1
+              ? 'persona inscrita'
+              : 'personas inscritas'}
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            flexWrap: 'wrap',
+          }}
+        >
+          {[
+            {
+              nombre: 'Pendientes',
+              estado: 'Pendiente',
+              color: C.gold,
+            },
+            {
+              nombre: 'Confirmados',
+              estado: 'Confirmado',
+              color: C.green,
+            },
+            {
+              nombre: 'Cancelados',
+              estado: 'Cancelado',
+              color: C.red,
+            },
+          ].map(item => {
+            const cantidad = inscripcionesList.filter(
+              inscripcion => {
+                const estado =
+                  inscripcion.estado === 'Confirmada'
+                    ? 'Confirmado'
+                    : inscripcion.estado || 'Pendiente'
+
+                return estado === item.estado
+              }
+            ).length
+
+            return (
+              <div
+                key={item.estado}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '9px 13px',
+                  borderRadius: 6,
+                  background: `${item.color}10`,
+                  border: `1px solid ${item.color}28`,
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontSize: 22,
+                    lineHeight: 1,
+                    color: item.color,
+                  }}
+                >
+                  {cantidad}
+                </span>
+
+                <span
+                  style={{
+                    fontFamily: "'Courier Prime', monospace",
+                    fontSize: 9,
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                    fontWeight: '700',
+                    color: item.color,
+                  }}
+                >
+                  {item.nombre}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {inscripcionesList.length === 0 ? (
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '60px 24px',
+            background: '#fff',
+            border: '1px solid rgba(26,18,8,0.07)',
+            borderRadius: 10,
+          }}
+        >
+          <p
+            style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: 22,
+              color: 'rgba(26,18,8,0.35)',
+              fontStyle: 'italic',
+            }}
+          >
+            Sin inscripciones registradas.
+          </p>
+        </div>
+      ) : (
+        <div
+          style={{
+            background: '#fff',
+            border: '1px solid rgba(26,18,8,0.08)',
+            borderRadius: 10,
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              minHeight: 300,
+              maxHeight: 'calc(100vh - 285px)',
+              overflowY: 'auto',
+              overflowX: 'auto',
+              scrollbarGutter: 'stable',
+            }}
+          >
+            <table
+              style={{
+                width: '100%',
+                minWidth: 1000,
+                borderCollapse: 'separate',
+                borderSpacing: 0,
+              }}
+            >
+              <thead
+                style={{
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 5,
+                  background: '#fff',
+                }}
+              >
+                <tr>
+                  {[
+                    'Nombre',
+                    'Correo',
+                    'Taller',
+                    'Fecha',
+                    'Estado',
+                  ].map(encabezado => (
+                    <th
+                      key={encabezado}
+                      style={{
+                        fontFamily:
+                          "'Courier Prime', monospace",
+                        fontSize: 10,
+                        letterSpacing: 2,
+                        textTransform: 'uppercase',
+                        color: 'rgba(26,18,8,0.5)',
+                        padding: '15px 20px',
+                        textAlign: 'left',
+                        borderBottom:
+                          '1px solid rgba(26,18,8,0.08)',
+                        fontWeight: '700',
+                        whiteSpace: 'nowrap',
+                        background: '#fff',
+                      }}
+                    >
+                      {encabezado}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody>
+                {inscripcionesList.map(
+                  (inscripcion, index) => {
+                    const estadoNormalizado =
+                      inscripcion.estado === 'Confirmada'
+                        ? 'Confirmado'
+                        : inscripcion.estado || 'Pendiente'
+
+                    const estadoConfig = {
+                      Pendiente: {
+                        color: C.gold,
+                        background:
+                          'rgba(184,148,58,0.1)',
+                      },
+                      Confirmado: {
+                        color: C.green,
+                        background:
+                          'rgba(34,161,106,0.1)',
+                      },
+                      Cancelado: {
+                        color: C.red,
+                        background:
+                          'rgba(139,26,26,0.1)',
+                      },
+                    }
+
+                    const apariencia =
+                      estadoConfig[estadoNormalizado] ||
+                      estadoConfig.Pendiente
+
+                    return (
+                      <tr
+                        key={inscripcion.id || index}
+                        style={{
+                          transition: 'background 0.15s',
+                        }}
+                        onMouseOver={event => {
+                          event.currentTarget.style.background =
+                            '#faf6ee'
+                        }}
+                        onMouseOut={event => {
+                          event.currentTarget.style.background =
+                            'transparent'
+                        }}
+                      >
+                        <td
+                          style={{
+                            fontFamily:
+                              "'Cormorant Garamond', serif",
+                            fontSize: 20,
+                            color: C.ink,
+                            padding: '16px 20px',
+                            fontWeight: '500',
+                            borderBottom:
+                              '1px solid rgba(26,18,8,0.04)',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {inscripcion.nombre || '—'}
+                        </td>
+
+                        <td
+                          style={{
+                            fontFamily:
+                              "'Courier Prime', monospace",
+                            fontSize: 10,
+                            color: 'rgba(26,18,8,0.5)',
+                            padding: '16px 20px',
+                            borderBottom:
+                              '1px solid rgba(26,18,8,0.04)',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {inscripcion.email || '—'}
+                        </td>
+
+                        <td
+                          style={{
+                            fontFamily:
+                              "'Courier Prime', monospace",
+                            fontSize: 11,
+                            color: 'rgba(26,18,8,0.65)',
+                            padding: '16px 20px',
+                            letterSpacing: 0.5,
+                            fontWeight: '600',
+                            borderBottom:
+                              '1px solid rgba(26,18,8,0.04)',
+                            minWidth: 320,
+                          }}
+                        >
+                          {inscripcion.talleres?.titulo ||
+                            '—'}
+                        </td>
+
+                        <td
+                          style={{
+                            fontFamily:
+                              "'Courier Prime', monospace",
+                            fontSize: 10,
+                            color: 'rgba(26,18,8,0.5)',
+                            padding: '16px 20px',
+                            fontWeight: '600',
+                            borderBottom:
+                              '1px solid rgba(26,18,8,0.04)',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {inscripcion.created_at
+                            ? new Date(
+                                inscripcion.created_at
+                              ).toLocaleDateString('es-MX')
+                            : '—'}
+                        </td>
+
+                        <td
+                          style={{
+                            padding: '12px 20px',
+                            borderBottom:
+                              '1px solid rgba(26,18,8,0.04)',
+                          }}
+                        >
+                          <select
+                            value={estadoNormalizado}
+                            onChange={event =>
+                              cambiarEstadoInscripcion(
+                                inscripcion,
+                                event.target.value
+                              )
+                            }
+                            style={{
+                              minWidth: 150,
+                              padding:
+                                '9px 34px 9px 12px',
+                              border: `1px solid ${apariencia.color}40`,
+                              borderRadius: 5,
+                              background:
+                                apariencia.background,
+                              color: apariencia.color,
+                              outline: 'none',
+                              cursor: 'pointer',
+                              fontFamily:
+                                "'Courier Prime', monospace",
+                              fontSize: 9,
+                              letterSpacing: 1,
+                              textTransform: 'uppercase',
+                              fontWeight: '700',
+                            }}
+                          >
+                            <option value="Pendiente">
+                              Pendiente
+                            </option>
+
+                            <option value="Confirmado">
+                              Confirmado
+                            </option>
+
+                            <option value="Cancelado">
+                              Cancelado
+                            </option>
+                          </select>
+                        </td>
+                      </tr>
+                    )
+                  }
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+
+case 'envios':
+  return <SeccionEnvios />
       case 'usuarios': return <Usuarios esAdmin={true} />
 
 default:

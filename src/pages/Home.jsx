@@ -510,76 +510,84 @@ const moverEventos = (direccion) => {
 {/* ═══════ PRÓXIMOS EVENTOS ═══════ */}
 <section style={{ background: '#f5ede0', padding: '90px 40px', borderTop: '1px solid rgba(58,171,220,0.12)' }}>
   <div style={{ maxWidth: 1200, margin: '0 auto', position: 'relative' }}>
-    <AnimatedSection direction="right">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 44, flexWrap: 'wrap', gap: 16 }}>
-        <div>
-<div>
-  <p
+<AnimatedSection direction="right">
+  <div
     style={{
-      fontFamily: "'Courier Prime', monospace",
-      fontSize: 11,
-      letterSpacing: 4,
-      textTransform: 'uppercase',
-      color: '#3AABDC',
-      marginBottom: 8,
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-end',
+      marginBottom: 44,
+      flexWrap: 'wrap',
+      gap: 16,
     }}
   >
-    Comunidad
-  </p>
+    <div>
+      <p
+        style={{
+          fontFamily: "'Courier Prime', monospace",
+          fontSize: 11,
+          letterSpacing: 4,
+          textTransform: 'uppercase',
+          color: '#3AABDC',
+          marginBottom: 8,
+        }}
+      >
+        Comunidad
+      </p>
 
-  <h2
-    style={{
-      fontFamily: "'Cormorant Garamond', serif",
-      fontSize: 'clamp(36px, 4.5vw, 60px)',
-      fontWeight: 300,
-      color: '#1a1208',
-    }}
-  >
-    Próximos eventos y talleres
-  </h2>
-</div>
+      <h2
+        style={{
+          fontFamily: "'Cormorant Garamond', serif",
+          fontSize: 'clamp(36px, 4.5vw, 60px)',
+          fontWeight: 300,
+          color: '#1a1208',
+        }}
+      >
+        Próximos eventos y talleres
+      </h2>
+    </div>
 
-<div
-  style={{
-    display: 'flex',
-    gap: 18,
-    flexWrap: 'wrap',
-  }}
->
-  <Link
-    to="/eventos"
-    style={{
-      fontFamily: "'Courier Prime', monospace",
-      fontSize: 11,
-      letterSpacing: 2,
-      textTransform: 'uppercase',
-      color: 'rgba(26,18,8,0.5)',
-      borderBottom:
-        '1px solid rgba(26,18,8,0.2)',
-      paddingBottom: 2,
-    }}
-  >
-    Ver eventos →
-  </Link>
+    <div
+      style={{
+        display: 'flex',
+        gap: 18,
+        flexWrap: 'wrap',
+      }}
+    >
+      <Link
+        to="/eventos"
+        style={{
+          fontFamily: "'Courier Prime', monospace",
+          fontSize: 11,
+          letterSpacing: 2,
+          textTransform: 'uppercase',
+          color: 'rgba(26,18,8,0.5)',
+          borderBottom:
+            '1px solid rgba(26,18,8,0.2)',
+          paddingBottom: 2,
+        }}
+      >
+        Ver eventos →
+      </Link>
 
-  <Link
-    to="/talleres"
-    style={{
-      fontFamily: "'Courier Prime', monospace",
-      fontSize: 11,
-      letterSpacing: 2,
-      textTransform: 'uppercase',
-      color: 'rgba(26,18,8,0.5)',
-      borderBottom:
-        '1px solid rgba(26,18,8,0.2)',
-      paddingBottom: 2,
-    }}
-  >
-    Ver talleres →
-  </Link>
-</div>
-      </div>
-    </AnimatedSection>
+      <Link
+        to="/talleres"
+        style={{
+          fontFamily: "'Courier Prime', monospace",
+          fontSize: 11,
+          letterSpacing: 2,
+          textTransform: 'uppercase',
+          color: 'rgba(26,18,8,0.5)',
+          borderBottom:
+            '1px solid rgba(26,18,8,0.2)',
+          paddingBottom: 2,
+        }}
+      >
+        Ver talleres →
+      </Link>
+    </div>
+  </div>
+</AnimatedSection>
 
 {eventosActivos.length > 4 && (
       <>

@@ -91,6 +91,7 @@ const eventosCarouselRef              = useRef(null)
 const [escritura, setEscritura]             = useState(null)
 const [banners, setBanners]                 = useState([])
 const [eventos, setEventos]                 = useState([])
+const [talleres, setTalleres]               = useState([])
 const [noticiasSemana, setNoticiasSemana]   = useState([])
 const [paginaEscritura, setPaginaEscritura] = useState(0)
 
@@ -107,36 +108,46 @@ const [paginaEscritura, setPaginaEscritura] = useState(0)
   // Cargar datos Supabase
 useEffect(() => {
   const cargar = async () => {
-    const [
-      { data: escriturasData },
-      { data: bannersData },
-      { data: eventosData },
-    ] = await Promise.all([
-      supabase
-        .from('escrituras')
-        .select('*')
-        .eq('publicado', true)
-        .order('created_at', { ascending: false })
-        .limit(1),
+  
+const [
+  { data: escriturasData },
+  { data: bannersData },
+  { data: eventosData },
+  { data: talleresData },
+] = await Promise.all([
+  supabase
+    .from('escrituras')
+    .select('*')
+    .eq('publicado', true)
+    .order('created_at', { ascending: false })
+    .limit(1),
 
-      supabase
-        .from('banners')
-        .select('*')
-        .eq('activo', true)
-        .order('orden', { ascending: true }),
+  supabase
+    .from('banners')
+    .select('*')
+    .eq('activo', true)
+    .order('orden', { ascending: true }),
 
-      supabase
-        .from('eventos')
-        .select('*')
-        .eq('publicado', true)
-        .eq('estado', 'Próximo')
-        .order('fecha', { ascending: true })
-        .limit(12),
-    ])
+  supabase
+    .from('eventos')
+    .select('*')
+    .eq('publicado', true)
+    .eq('estado', 'Próximo')
+    .order('fecha', { ascending: true })
+    .limit(12),
 
-    setEscritura(escriturasData?.[0] || null)
-    setBanners(bannersData || [])
-    setEventos(eventosData || [])
+  supabase
+    .from('talleres')
+    .select('*')
+    .eq('activo', true)
+    .order('fecha', { ascending: true })
+    .limit(12),
+])
+
+setEscritura(escriturasData?.[0] || null)
+setBanners(bannersData || [])
+setEventos(eventosData || [])
+setTalleres(talleresData || [])
 
     // Noticias publicadas durante los últimos siete días.
     const hace7dias = new Date()
@@ -199,37 +210,104 @@ useEffect(() => {
     )
     .subscribe()
 
-  const ch4 = supabase
-    .channel('home-ns')
-    .on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'noticias',
-      },
-      cargar
-    )
-    .subscribe()
+const ch4 = supabase
+  .channel('home-ns')
+  .on(
+    'postgres_changes',
+    {
+      event: '*',
+      schema: 'public',
+      table: 'noticias',
+    },
+    cargar
+  )
+  .subscribe()
 
-  return () => {
-    supabase.removeChannel(ch1)
-    supabase.removeChannel(ch2)
-    supabase.removeChannel(ch3)
-    supabase.removeChannel(ch4)
-  }
+const ch5 = supabase
+  .channel('home-talleres')
+  .on(
+    'postgres_changes',
+    {
+      event: '*',
+      schema: 'public',
+      table: 'talleres',
+    },
+    cargar
+  )
+  .subscribe()
+
+return () => {
+  supabase.removeChannel(ch1)
+  supabase.removeChannel(ch2)
+  supabase.removeChannel(ch3)
+  supabase.removeChannel(ch4)
+  supabase.removeChannel(ch5)
+}
 }, [])
 
 // Datos reales cargados desde Supabase.
 const escrituraActiva = escritura || ESCRITURA_FB
 const bannersActivos = banners
-const eventosActivos = eventos
 
-// Carrusel de noticias y banners reales.
+const eventosNormalizados = eventos.map(evento => ({
+  ...evento,
+  _tipoContenido: 'evento',
+  _rutaDetalle: `/eventos/${evento.id}`,
+}))
+
+const talleresNormalizados = talleres.map(taller => ({
+  ...taller,
+  tipo: 'Taller',
+  descripcion:
+    taller.descripcion ||
+    taller.descripcion_larga ||
+    '',
+  lugar:
+    taller.lugar ||
+    taller.modalidad ||
+    'Consulta los detalles',
+  _tipoContenido: 'taller',
+  _rutaDetalle: `/talleres/${taller.id}`,
+}))
+
+const eventosActivos = [
+  ...eventosNormalizados,
+  ...talleresNormalizados,
+]
+  .filter(item => {
+    if (!item.fecha) return true
+
+    const fechaItem = new Date(
+      `${item.fecha}T12:00:00`
+    )
+
+    const hoy = new Date()
+    hoy.setHours(0, 0, 0, 0)
+
+    return fechaItem >= hoy
+  })
+  .sort((a, b) => {
+    const fechaA = a.fecha
+      ? new Date(`${a.fecha}T12:00:00`).getTime()
+      : Number.MAX_SAFE_INTEGER
+
+    const fechaB = b.fecha
+      ? new Date(`${b.fecha}T12:00:00`).getTime()
+      : Number.MAX_SAFE_INTEGER
+
+    return fechaA - fechaB
+  })
+
+// Carrusel con noticias, talleres y banners.
 const carruselItems = [
   ...noticiasSemana.map(noticia => ({
     ...noticia,
     _tipo: 'noticia',
+  })),
+
+  ...talleresNormalizados.map(taller => ({
+    ...taller,
+    _tipo: 'taller',
   })),
 
   ...bannersActivos.map(banner => ({
@@ -435,10 +513,71 @@ const moverEventos = (direccion) => {
     <AnimatedSection direction="right">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 44, flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <p style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 4, textTransform: 'uppercase', color: '#3AABDC', marginBottom: 8 }}>Comunidad</p>
-          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(36px, 4.5vw, 60px)', fontWeight: 300, color: '#1a1208' }}>Próximos eventos</h2>
-        </div>
-        <Link to="/eventos" style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(26,18,8,0.5)', borderBottom: '1px solid rgba(26,18,8,0.2)', paddingBottom: 2 }}>Ver todos →</Link>
+<div>
+  <p
+    style={{
+      fontFamily: "'Courier Prime', monospace",
+      fontSize: 11,
+      letterSpacing: 4,
+      textTransform: 'uppercase',
+      color: '#3AABDC',
+      marginBottom: 8,
+    }}
+  >
+    Comunidad
+  </p>
+
+  <h2
+    style={{
+      fontFamily: "'Cormorant Garamond', serif",
+      fontSize: 'clamp(36px, 4.5vw, 60px)',
+      fontWeight: 300,
+      color: '#1a1208',
+    }}
+  >
+    Próximos eventos y talleres
+  </h2>
+</div>
+
+<div
+  style={{
+    display: 'flex',
+    gap: 18,
+    flexWrap: 'wrap',
+  }}
+>
+  <Link
+    to="/eventos"
+    style={{
+      fontFamily: "'Courier Prime', monospace",
+      fontSize: 11,
+      letterSpacing: 2,
+      textTransform: 'uppercase',
+      color: 'rgba(26,18,8,0.5)',
+      borderBottom:
+        '1px solid rgba(26,18,8,0.2)',
+      paddingBottom: 2,
+    }}
+  >
+    Ver eventos →
+  </Link>
+
+  <Link
+    to="/talleres"
+    style={{
+      fontFamily: "'Courier Prime', monospace",
+      fontSize: 11,
+      letterSpacing: 2,
+      textTransform: 'uppercase',
+      color: 'rgba(26,18,8,0.5)',
+      borderBottom:
+        '1px solid rgba(26,18,8,0.2)',
+      paddingBottom: 2,
+    }}
+  >
+    Ver talleres →
+  </Link>
+</div>
       </div>
     </AnimatedSection>
 
@@ -567,8 +706,21 @@ const moverEventos = (direccion) => {
         const textColor = getTextColor(n.color)
 
         return (
-<AnimatedSection key={n.id} direction="up" delay={i * 0.1} className="evento-home-card-wrap" style={{ flex: '0 0 310px' }}>
-            <Link to={`/eventos/${n.id}`} style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
+<AnimatedSection
+  key={`${ev._tipoContenido || 'evento'}-${n.id}`}
+  direction="up"
+  delay={i * 0.1}
+  className="evento-home-card-wrap"
+  style={{ flex: '0 0 310px' }}
+>
+  <Link
+    to={ev._rutaDetalle || `/eventos/${n.id}`}
+    style={{
+      textDecoration: 'none',
+      display: 'block',
+      height: '100%',
+    }}
+  >
 <div
   className="evento-home-card"
   style={{
@@ -737,20 +889,22 @@ const moverEventos = (direccion) => {
                     {n.lugar}
                   </p>
 
-                  <span
-                    style={{
-                      fontFamily: "'Courier Prime', monospace",
-                      fontSize: 10,
-                      letterSpacing: 2,
-                      textTransform: 'uppercase',
-                      color: textColor,
-                      borderBottom: `1px solid ${textColor}`,
-                      fontWeight: '900',
-                      alignSelf: 'center',
-                    }}
-                  >
-                    Ver evento →
-                  </span>
+<span
+  style={{
+    fontFamily: "'Courier Prime', monospace",
+    fontSize: 10,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    color: textColor,
+    borderBottom: `1px solid ${textColor}`,
+    fontWeight: '900',
+    alignSelf: 'center',
+  }}
+>
+  {ev._tipoContenido === 'taller'
+    ? 'Ver taller →'
+    : 'Ver evento →'}
+</span>
                 </div>
               </div>
             </Link>
@@ -902,10 +1056,100 @@ const moverEventos = (direccion) => {
               )
             }
 
+            if (item._tipo === 'taller') {
+              const taller = item
+              const color =
+                taller.color || '#3AABDC'
+
+              const descripcionTaller =
+                taller.descripcion ||
+                taller.descripcion_larga ||
+                ''
+
+              return (
+                <Link
+                  key={`taller-${taller.id || i}`}
+                  to={`/talleres/${taller.id}`}
+                  className="anuncios-slide-link"
+                >
+                  <div
+                    className="anuncios-slide"
+                    style={{
+                      background: `linear-gradient(135deg, ${color} 0%, ${color}99 100%)`,
+                    }}
+                  >
+                    {taller.imagen_url && (
+                      <>
+                        <img
+                          src={taller.imagen_url}
+                          alt={taller.titulo}
+                          className="anuncios-slide-img"
+                        />
+
+                        <div className="anuncios-slide-overlay" />
+                      </>
+                    )}
+
+                    <div className="anuncios-bg-text">
+                      TALLER
+                    </div>
+
+                    <div className="anuncios-content">
+                      <div className="anuncios-meta-row">
+                        <span className="anuncios-pill">
+                          Taller
+                        </span>
+
+                        {taller.fecha && (
+                          <span className="anuncios-date">
+                            {new Date(
+                              `${taller.fecha}T12:00:00`
+                            ).toLocaleDateString(
+                              'es-MX',
+                              {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                              }
+                            )}
+                          </span>
+                        )}
+                      </div>
+
+                      <h3>{taller.titulo}</h3>
+
+                      {descripcionTaller && (
+                        <p>
+                          {descripcionTaller.length > 140
+                            ? `${descripcionTaller.slice(
+                                0,
+                                140
+                              )}...`
+                            : descripcionTaller}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              )
+            }
+
             const b = item
-            const href = b.link_url || b.link || '/noticias'
-            const esExterno = b.link_tipo === 'externo'
-            const grad = b.gradiente || `linear-gradient(135deg, ${b.color || '#9B2D8E'} 0%, ${(b.color || '#9B2D8E')}aa 100%)`
+            const href =
+              b.link_url ||
+              b.link ||
+              '/noticias'
+
+            const esExterno =
+              b.link_tipo === 'externo'
+
+            const grad =
+              b.gradiente ||
+              `linear-gradient(135deg, ${
+                b.color || '#9B2D8E'
+              } 0%, ${
+                b.color || '#9B2D8E'
+              }aa 100%)`
 
             return (
               <Link

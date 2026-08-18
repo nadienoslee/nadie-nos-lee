@@ -1143,6 +1143,7 @@ const moverEventos = (direccion) => {
             }
 
             const b = item
+
             const href =
               b.link_url ||
               b.link ||
@@ -1151,36 +1152,102 @@ const moverEventos = (direccion) => {
             const esExterno =
               b.link_tipo === 'externo'
 
-            const grad =
+            const tieneColor =
+              typeof b.color === 'string' &&
+              b.color.trim() !== ''
+
+            const tieneTitulo =
+              typeof b.titulo === 'string' &&
+              b.titulo.trim() !== ''
+
+            const tieneSubtitulo =
+              typeof b.subtitulo === 'string' &&
+              b.subtitulo.trim() !== ''
+
+            const tieneTexto =
+              tieneTitulo || tieneSubtitulo
+
+            const imagenCompleta =
+              b.imagen_ajuste === 'Completa'
+
+            const backgroundBanner =
               b.gradiente ||
-              `linear-gradient(135deg, ${
-                b.color || '#9B2D8E'
-              } 0%, ${
-                b.color || '#9B2D8E'
-              }aa 100%)`
+              (
+                tieneColor
+                  ? `linear-gradient(135deg, ${b.color} 0%, ${b.color}aa 100%)`
+                  : '#14110e'
+              )
 
             return (
               <Link
                 key={b.id || i}
                 to={esExterno ? '#' : href}
-                onClick={esExterno ? e => { e.preventDefault(); window.open(href, '_blank') } : undefined}
+                onClick={
+                  esExterno
+                    ? e => {
+                        e.preventDefault()
+                        window.open(
+                          href,
+                          '_blank',
+                          'noopener,noreferrer'
+                        )
+                      }
+                    : undefined
+                }
                 className="anuncios-slide-link"
               >
                 <div
                   className="anuncios-slide"
-                  style={{ background: grad }}
+                  style={{
+                    background: backgroundBanner,
+                    padding:
+                      imagenCompleta && !tieneTexto
+                        ? 0
+                        : undefined,
+                  }}
                 >
                   {b.imagen_url && (
-                    <img src={b.imagen_url} alt={b.titulo} className="anuncios-slide-img banner" />
+                    <img
+                      src={b.imagen_url}
+                      alt={b.titulo || 'Banner'}
+                      className="anuncios-slide-img"
+                      style={{
+                        objectFit:
+                          imagenCompleta
+                            ? 'contain'
+                            : 'cover',
+                        objectPosition: 'center',
+                        opacity:
+                          !tieneColor && !tieneTexto
+                            ? 1
+                            : imagenCompleta
+                              ? 1
+                              : 0.35,
+                      }}
+                    />
                   )}
 
-                  <div className="anuncios-bg-text">NADIE NOS LEE</div>
+                  {tieneTexto && (
+                    <div className="anuncios-bg-text">
+                      NADIE NOS LEE
+                    </div>
+                  )}
 
-                  <div className="anuncios-content">
-                    <p className="anuncios-eyebrow">Colectivo</p>
-                    <h3>{b.titulo}</h3>
-                    <p>{b.subtitulo}</p>
-                  </div>
+                  {tieneTexto && (
+                    <div className="anuncios-content">
+                      <p className="anuncios-eyebrow">
+                        Colectivo
+                      </p>
+
+                      {tieneTitulo && (
+                        <h3>{b.titulo}</h3>
+                      )}
+
+                      {tieneSubtitulo && (
+                        <p>{b.subtitulo}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </Link>
             )

@@ -109,14 +109,15 @@ eventos: {
   banners: {
     tabla: 'banners', titulo: 'Banners del carrusel', color: C.blue,
     campos: [
-      { key: 'titulo',     label: 'Título',        tipo: 'text',     requerido: true },
-      { key: 'subtitulo',  label: 'Subtítulo',     tipo: 'text' },
-      { key: 'imagen_url', label: 'URL de imagen', tipo: 'text' },
-      { key: 'link_url',   label: 'URL del link',  tipo: 'text' },
-      { key: 'link_tipo',  label: 'Tipo de link',  tipo: 'select', opciones: ['interno', 'externo'] },
-      { key: 'orden',      label: 'Orden',         tipo: 'number' },
-      { key: 'color',      label: 'Color',         tipo: 'color' },
-      { key: 'activo',     label: 'Activo',        tipo: 'toggle' },
+      { key: 'titulo',        label: 'Título',            tipo: 'text' },
+      { key: 'subtitulo',     label: 'Subtítulo',         tipo: 'text' },
+      { key: 'imagen_url',    label: 'URL de imagen',     tipo: 'text' },
+      { key: 'imagen_ajuste', label: 'Ajuste de imagen',  tipo: 'select', opciones: ['Cubrir', 'Completa'] },
+      { key: 'link_url',      label: 'URL del link',      tipo: 'text' },
+      { key: 'link_tipo',     label: 'Tipo de link',      tipo: 'select', opciones: ['interno', 'externo'] },
+      { key: 'orden',         label: 'Orden',             tipo: 'number' },
+      { key: 'color',         label: 'Color',             tipo: 'color' },
+      { key: 'activo',        label: 'Activo',            tipo: 'toggle' },
     ],
     columnas: ['titulo', 'subtitulo', 'orden', 'activo'],
   },
@@ -171,12 +172,34 @@ const [pendienteGuardar, setPendienteGuardar] = useState(false)
 
   const abrirNuevo = () => {
     const defaults = {}
+
     config.campos.forEach(c => {
-      if (c.tipo === 'toggle') defaults[c.key] = false
-      else if (c.tipo === 'number') defaults[c.key] = c.key === 'orden' ? 0 : c.key.includes('cupo') ? 20 : c.key === 'minutos_lectura' ? 5 : undefined
-      else if (c.tipo === 'color') defaults[c.key] = '#9B2D8E'
-      else defaults[c.key] = ''
+      if (c.tipo === 'toggle') {
+        defaults[c.key] = false
+      } else if (c.tipo === 'number') {
+        defaults[c.key] =
+          c.key === 'orden'
+            ? 0
+            : c.key.includes('cupo')
+              ? 20
+              : c.key === 'minutos_lectura'
+                ? 5
+                : undefined
+      } else if (c.tipo === 'color') {
+        defaults[c.key] =
+          seccion === 'banners'
+            ? ''
+            : '#9B2D8E'
+      } else if (
+        seccion === 'banners' &&
+        c.key === 'imagen_ajuste'
+      ) {
+        defaults[c.key] = 'Cubrir'
+      } else {
+        defaults[c.key] = ''
+      }
     })
+
     setForm(defaults)
     setModal('nuevo')
   }
@@ -345,9 +368,87 @@ if (col === 'fecha' || col === 'fecha_cierre' || col === 'fecha_publicacion') {
     if (campo.tipo === 'color') return (
       <div key={campo.key} style={{ marginBottom: 16 }}>
         <label style={labelStyle}>{campo.label}</label>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <input type="color" value={v || '#9B2D8E'} onChange={e => setForm(prev => ({ ...prev, [campo.key]: e.target.value }))} style={{ width: 48, height: 40, padding: 2, background: '#faf6ee', border: '1px solid rgba(26,18,8,0.12)', borderRadius: 5, cursor: 'pointer' }} />
-          <input type="text" value={v || ''} onChange={e => setForm(prev => ({ ...prev, [campo.key]: e.target.value }))} style={{ ...inputStyle, marginBottom: 0, flex: 1, fontFamily: "'Courier Prime', monospace", fontSize: 14 }} {...base} />
+
+        <div
+          style={{
+            display: 'flex',
+            gap: 10,
+            alignItems: 'center',
+          }}
+        >
+          <input
+            type="color"
+            value={v || '#9B2D8E'}
+            onChange={e =>
+              setForm(prev => ({
+                ...prev,
+                [campo.key]: e.target.value,
+              }))
+            }
+            style={{
+              width: 48,
+              height: 40,
+              padding: 2,
+              background: '#faf6ee',
+              border: '1px solid rgba(26,18,8,0.12)',
+              borderRadius: 5,
+              cursor: 'pointer',
+            }}
+          />
+
+          <input
+            type="text"
+            value={v || ''}
+            placeholder={
+              seccion === 'banners'
+                ? 'Sin color'
+                : ''
+            }
+            onChange={e =>
+              setForm(prev => ({
+                ...prev,
+                [campo.key]: e.target.value,
+              }))
+            }
+            style={{
+              ...inputStyle,
+              marginBottom: 0,
+              flex: 1,
+              fontFamily: "'Courier Prime', monospace",
+              fontSize: 14,
+            }}
+            {...base}
+          />
+
+          {seccion === 'banners' && (
+            <button
+              type="button"
+              onClick={() =>
+                setForm(prev => ({
+                  ...prev,
+                  [campo.key]: '',
+                }))
+              }
+              style={{
+                fontFamily: "'Courier Prime', monospace",
+                fontSize: 10,
+                letterSpacing: 1,
+                textTransform: 'uppercase',
+                background: v
+                  ? '#fff'
+                  : 'rgba(26,18,8,0.08)',
+                color: 'rgba(26,18,8,0.6)',
+                border: '1px solid rgba(26,18,8,0.14)',
+                padding: '11px 14px',
+                borderRadius: 5,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                fontWeight: '700',
+              }}
+            >
+              Sin color
+            </button>
+          )}
         </div>
       </div>
     )

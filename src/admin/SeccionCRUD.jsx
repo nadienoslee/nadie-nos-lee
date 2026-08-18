@@ -95,14 +95,16 @@ eventos: {
   noticias: {
     tabla: 'noticias', titulo: 'Noticias', color: C.red,
     campos: [
-      { key: 'titulo',            label: 'Título',            tipo: 'text',     requerido: true },
-      { key: 'categoria',         label: 'Categoría',         tipo: 'select', opciones: ['Colectivo', 'Convocatoria', 'Publicación', 'Evento', 'Otro'] },
-      { key: 'cuerpo',            label: 'Cuerpo',            tipo: 'textarea', rows: 10 },
-{ key: 'imagen_url',        label: 'URL de imagen',     tipo: 'text' },
-{ key: 'link_url',          label: 'Enlace externo',    tipo: 'text', placeholder: 'https://instagram.com/p/...' },
-{ key: 'fecha_publicacion', label: 'Fecha publicación', tipo: 'date' },
-{ key: 'color',             label: 'Color',             tipo: 'color' },
-{ key: 'publicado',         label: 'Publicado',         tipo: 'toggle' },
+      { key: 'titulo',            label: 'Título',                    tipo: 'text' },
+      { key: 'categoria',         label: 'Categoría',                 tipo: 'select', opciones: ['Colectivo', 'Convocatoria', 'Publicación', 'Evento', 'Otro'] },
+      { key: 'cuerpo',            label: 'Cuerpo',                    tipo: 'textarea', rows: 10 },
+      { key: 'imagen_url',        label: 'URL de imagen',             tipo: 'text' },
+      { key: 'imagen_ajuste',     label: 'Ajuste de imagen',          tipo: 'select', opciones: ['Cubrir', 'Completa'] },
+      { key: 'link_url',          label: 'Enlace externo',            tipo: 'text', placeholder: 'https://instagram.com/p/...' },
+      { key: 'fecha_publicacion', label: 'Fecha publicación',         tipo: 'date' },
+      { key: 'color',             label: 'Color',                     tipo: 'color' },
+      { key: 'usar_color',        label: 'Color encima de la imagen', tipo: 'toggle' },
+      { key: 'publicado',         label: 'Publicado',                 tipo: 'toggle' },
     ],
     columnas: ['titulo', 'categoria', 'fecha_publicacion', 'publicado'],
   },
@@ -192,7 +194,7 @@ const [pendienteGuardar, setPendienteGuardar] = useState(false)
             ? ''
             : '#9B2D8E'
       } else if (
-        seccion === 'banners' &&
+        (seccion === 'banners' || seccion === 'noticias') &&
         c.key === 'imagen_ajuste'
       ) {
         defaults[c.key] = 'Cubrir'
@@ -212,9 +214,16 @@ const [pendienteGuardar, setPendienteGuardar] = useState(false)
 
   // ── GUARDAR (nuevo o editar) ──
   const solicitarGuardar = () => {
-    // Validar requeridos
     for (const campo of config.campos) {
-      if (campo.requerido && !form[campo.key]?.toString().trim()) {
+      const esTituloOpcionalBanner =
+        seccion === 'banners' &&
+        campo.key === 'titulo'
+
+      if (
+        campo.requerido &&
+        !esTituloOpcionalBanner &&
+        !form[campo.key]?.toString().trim()
+      ) {
         setAlerta({
           tipo: 'error',
           titulo: 'Campo obligatorio',
@@ -226,17 +235,19 @@ const [pendienteGuardar, setPendienteGuardar] = useState(false)
     }
 
     if (modal === 'nuevo') {
-      // Crear: sin confirmación, directo
       ejecutarGuardar()
     } else {
-      // Editar: pedir confirmación
       setPendienteGuardar(true)
+
       setAlerta({
         tipo: 'advertencia',
         titulo: '¿Guardar cambios?',
         mensaje: `Vas a editar "${form[config.columnas[0]] || config.titulo}". Esta acción actualizará el contenido publicado.`,
         botonTexto: 'Sí, guardar',
-        botonAccion: () => { setPendienteGuardar(false); ejecutarGuardar() },
+        botonAccion: () => {
+          setPendienteGuardar(false)
+          ejecutarGuardar()
+        },
       })
     }
   }

@@ -1009,53 +1009,122 @@ const moverEventos = (direccion) => {
           {carruselItems.map((item, i) => {
             if (item._tipo === 'noticia') {
               const n = item
-              const color = n.color || '#8B1A1A'
-              const href = n.link_url || '/noticias'
-              const esExterno = !!n.link_url
+
+              const color =
+                n.color || '#8B1A1A'
+
+              const aplicarColor =
+                n.usar_color === true
+
+              const imagenCompleta =
+                n.imagen_ajuste === 'Completa'
+
+              const tieneTitulo =
+                typeof n.titulo === 'string' &&
+                n.titulo.trim() !== ''
+
+              const tieneCuerpo =
+                typeof n.cuerpo === 'string' &&
+                n.cuerpo.trim() !== ''
+
+              const href =
+                n.link_url || '/noticias'
+
+              const esExterno =
+                !!n.link_url
 
               return (
                 <a
                   key={n.id || i}
                   href={href}
-                  target={esExterno ? '_blank' : '_self'}
-                  rel={esExterno ? 'noopener noreferrer' : undefined}
+                  target={
+                    esExterno
+                      ? '_blank'
+                      : '_self'
+                  }
+                  rel={
+                    esExterno
+                      ? 'noopener noreferrer'
+                      : undefined
+                  }
                   className="anuncios-slide-link"
                 >
                   <div
                     className="anuncios-slide"
                     style={{
-                      background: `linear-gradient(135deg, ${color} 0%, ${color}99 100%)`,
+                      background: n.imagen_url
+                        ? '#14110e'
+                        : color,
                     }}
                   >
                     {n.imagen_url && (
-                      <>
-                        <img src={n.imagen_url} alt={n.titulo} className="anuncios-slide-img" />
-                        <div className="anuncios-slide-overlay" />
-                      </>
+                      <img
+                        src={n.imagen_url}
+                        alt={n.titulo || 'Noticia'}
+                        className="anuncios-slide-img"
+                        style={{
+                          objectFit:
+                            imagenCompleta
+                              ? 'contain'
+                              : 'cover',
+                          objectPosition: 'center',
+                          opacity: 1,
+                        }}
+                      />
                     )}
 
-                    <div className="anuncios-bg-text">NADIE NOS LEE</div>
+                    {n.imagen_url && aplicarColor && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          background: color,
+                          opacity: 0.55,
+                          zIndex: 0,
+                          pointerEvents: 'none',
+                        }}
+                      />
+                    )}
+
+                    {(tieneTitulo || tieneCuerpo) && (
+                      <div className="anuncios-bg-text">
+                        NADIE NOS LEE
+                      </div>
+                    )}
 
                     <div className="anuncios-content">
                       <div className="anuncios-meta-row">
-                        <span className="anuncios-pill">{n.categoria || 'Noticia'}</span>
+                        <span className="anuncios-pill">
+                          {n.categoria || 'Noticia'}
+                        </span>
 
                         {n.fecha_publicacion && (
                           <span className="anuncios-date">
-                            {new Date(n.fecha_publicacion).toLocaleDateString('es-MX', {
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric',
-                            })}
+                            {new Date(
+                              `${n.fecha_publicacion}T12:00:00`
+                            ).toLocaleDateString(
+                              'es-MX',
+                              {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                              }
+                            )}
                           </span>
                         )}
                       </div>
 
-                      <h3>{n.titulo}</h3>
+                      {tieneTitulo && (
+                        <h3>
+                          {n.titulo}
+                        </h3>
+                      )}
 
-                      {n.cuerpo && (
+                      {tieneCuerpo && (
                         <p>
-                          {n.cuerpo.length > 140 ? n.cuerpo.slice(0, 140) + '...' : n.cuerpo}
+                          {n.cuerpo.length > 140
+                            ? `${n.cuerpo.slice(0, 140)}...`
+                            : n.cuerpo}
                         </p>
                       )}
                     </div>
@@ -1063,7 +1132,6 @@ const moverEventos = (direccion) => {
                 </a>
               )
             }
-
             if (item._tipo === 'taller') {
               const taller = item
               const color =

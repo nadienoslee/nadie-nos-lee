@@ -1156,6 +1156,10 @@ const moverEventos = (direccion) => {
               typeof b.color === 'string' &&
               b.color.trim() !== ''
 
+            const aplicarColor =
+              b.usar_color === true &&
+              tieneColor
+
             const tieneTitulo =
               typeof b.titulo === 'string' &&
               b.titulo.trim() !== ''
@@ -1170,14 +1174,6 @@ const moverEventos = (direccion) => {
             const imagenCompleta =
               b.imagen_ajuste === 'Completa'
 
-            const backgroundBanner =
-              b.gradiente ||
-              (
-                tieneColor
-                  ? `linear-gradient(135deg, ${b.color} 0%, ${b.color}aa 100%)`
-                  : '#14110e'
-              )
-
             return (
               <Link
                 key={b.id || i}
@@ -1186,6 +1182,7 @@ const moverEventos = (direccion) => {
                   esExterno
                     ? e => {
                         e.preventDefault()
+
                         window.open(
                           href,
                           '_blank',
@@ -1199,7 +1196,10 @@ const moverEventos = (direccion) => {
                 <div
                   className="anuncios-slide"
                   style={{
-                    background: backgroundBanner,
+                    background:
+                      !b.imagen_url && tieneColor
+                        ? b.color
+                        : '#14110e',
                     padding:
                       imagenCompleta && !tieneTexto
                         ? 0
@@ -1217,12 +1217,20 @@ const moverEventos = (direccion) => {
                             ? 'contain'
                             : 'cover',
                         objectPosition: 'center',
-                        opacity:
-                          !tieneColor && !tieneTexto
-                            ? 1
-                            : imagenCompleta
-                              ? 1
-                              : 0.35,
+                        opacity: 1,
+                      }}
+                    />
+                  )}
+
+                  {aplicarColor && b.imagen_url && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: b.color,
+                        opacity: 0.55,
+                        zIndex: 0,
+                        pointerEvents: 'none',
                       }}
                     />
                   )}
